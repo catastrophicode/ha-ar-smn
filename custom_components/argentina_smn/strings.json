@@ -1,0 +1,24 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Set up Argentina SMN Weather",
+        "description": "Configure weather location for Argentina's National Weather Service",
+        "data": {
+          "track_home": "Track home location",
+          "latitude": "Latitude",
+          "longitude": "Longitude",
+          "name": "Name"
+        }
+      }
+    },
+    "error": {
+      "already_configured": "This location is already configured",
+      "invalid_latitude": "Invalid latitude value",
+      "invalid_longitude": "Invalid longitude value"
+    },
+    "abort": {
+      "no_home": "Home location not configured in Home Assistant"
+    }
+  }
+}
