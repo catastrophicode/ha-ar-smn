@@ -166,8 +166,8 @@ class ArgentinaSMNData:
             token = await self._token_manager.get_token()
             _LOGGER.debug("Using token for API request (first 20 chars): %s...", token[:20])
             return {
-                "Authorization": f"Bearer {token}",
-                "Content-Type": "application/json",
+                "Authorization": f"JWT {token}",
+                "Accept": "application/json",
             }
         except Exception as err:
             _LOGGER.error("Failed to get authentication token: %s", err)
