@@ -113,8 +113,10 @@ class ArgentinaSMNWeather(
         if not self.coordinator.data.current_weather_data:
             return None
 
-        condition = self.coordinator.data.current_weather_data.get(
-            ATTR_MAP.get("description", "description")
+        # Try description first, then weather
+        condition = (
+            self.coordinator.data.current_weather_data.get("description")
+            or self.coordinator.data.current_weather_data.get("weather")
         )
 
         # Check if sun is up for proper day/night condition
@@ -124,37 +126,27 @@ class ArgentinaSMNWeather(
     @property
     def native_temperature(self) -> float | None:
         """Return the temperature."""
-        return self.coordinator.data.current_weather_data.get(
-            ATTR_MAP.get("temperature", "temp")
-        )
+        return self.coordinator.data.current_weather_data.get("temp")
 
     @property
     def humidity(self) -> float | None:
         """Return the humidity."""
-        return self.coordinator.data.current_weather_data.get(
-            ATTR_MAP.get("humidity", "humidity")
-        )
+        return self.coordinator.data.current_weather_data.get("humidity")
 
     @property
     def native_pressure(self) -> float | None:
         """Return the pressure."""
-        return self.coordinator.data.current_weather_data.get(
-            ATTR_MAP.get("pressure", "pressure")
-        )
+        return self.coordinator.data.current_weather_data.get("pressure")
 
     @property
     def native_wind_speed(self) -> float | None:
         """Return the wind speed."""
-        return self.coordinator.data.current_weather_data.get(
-            ATTR_MAP.get("wind_speed", "wind_speed")
-        )
+        return self.coordinator.data.current_weather_data.get("wind_speed")
 
     @property
     def wind_bearing(self) -> float | str | None:
         """Return the wind bearing."""
-        return self.coordinator.data.current_weather_data.get(
-            ATTR_MAP.get("wind_bearing", "wind_bearing")
-        )
+        return self.coordinator.data.current_weather_data.get("wind_deg")
 
     @property
     def native_visibility(self) -> float | None:
@@ -164,7 +156,7 @@ class ArgentinaSMNWeather(
         )
 
     def _format_forecast(
-        self, forecast_data: list[dict[str, Any]]
+        self, forecast_data: list[dict[str, Any]], is_daily: bool = False
     ) -> list[Forecast]:
         """Format forecast data for Home Assistant."""
         if not forecast_data:
@@ -174,23 +166,28 @@ class ArgentinaSMNWeather(
 
         for item in forecast_data:
             # Skip if missing required fields
-            if not item.get("temperature") and not item.get("date"):
+            if not item.get("date") and not item.get("datetime"):
                 continue
 
-            forecast = Forecast(
-                datetime=self._parse_datetime(
-                    item.get("date") or item.get("datetime")
-                ),
-                native_temperature=item.get("temperature"),
-                native_templow=item.get("templow") or item.get("temp_min"),
-                condition=format_condition(
-                    item.get("description") or item.get("weather", "")
-                ),
-                native_precipitation=item.get("precipitation") or item.get("rain"),
-                native_wind_speed=item.get("wind_speed"),
-                wind_bearing=item.get("wind_bearing") or item.get("wind_direction"),
-                humidity=item.get("humidity"),
-            )
+            if is_daily:
+                # Daily forecast has temp_max and temp_min
+                forecast = Forecast(
+                    datetime=self._parse_datetime(item.get("date")),
+                    native_temperature=item.get("temp_max"),
+                    native_templow=item.get("temp_min"),
+                )
+            else:
+                # Hourly forecast has individual period data
+                forecast = Forecast(
+                    datetime=self._parse_datetime(item.get("datetime")),
+                    native_temperature=item.get("temperature"),
+                    condition=format_condition(
+                        item.get("description") or item.get("weather", "")
+                    ),
+                    humidity=item.get("humidity"),
+                    native_wind_speed=item.get("wind_speed"),
+                    wind_bearing=item.get("wind_direction"),
+                )
 
             forecasts.append(forecast)
 
@@ -220,11 +217,11 @@ class ArgentinaSMNWeather(
 
     async def async_forecast_daily(self) -> list[Forecast] | None:
         """Return the daily forecast."""
-        return self._format_forecast(self.coordinator.data.daily_forecast)
+        return self._format_forecast(self.coordinator.data.daily_forecast, is_daily=True)
 
     async def async_forecast_hourly(self) -> list[Forecast] | None:
         """Return the hourly forecast."""
-        return self._format_forecast(self.coordinator.data.hourly_forecast)
+        return self._format_forecast(self.coordinator.data.hourly_forecast, is_daily=False)
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:

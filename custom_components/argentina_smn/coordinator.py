@@ -24,6 +24,7 @@ from .const import (
     API_COORD_ENDPOINT,
     API_FORECAST_ENDPOINT,
     API_HEAT_WARNING_ENDPOINT,
+    API_WEATHER_ENDPOINT,
     CONF_TRACK_HOME,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
@@ -223,6 +224,9 @@ class ArgentinaSMNData:
             # Get location ID if not already set
             location_id = await self._get_location_id()
 
+            # Fetch current weather
+            await self._fetch_current_weather(location_id)
+
             # Fetch forecast data
             await self._fetch_forecast(location_id)
 
@@ -232,38 +236,103 @@ class ArgentinaSMNData:
         except Exception as err:
             raise UpdateFailed(f"Error fetching SMN data: {err}") from err
 
+    async def _fetch_current_weather(self, location_id: str) -> None:
+        """Fetch current weather data."""
+        url = f"{API_WEATHER_ENDPOINT}/{location_id}"
+        headers = await self._get_headers()
+
+        try:
+            _LOGGER.debug("Fetching current weather from: %s", url)
+            async with async_timeout.timeout(10):
+                response = await self._session.get(url, headers=headers)
+                response.raise_for_status()
+                data = await response.json()
+
+                _LOGGER.debug("Current weather response: %s", data)
+
+                # Parse current weather data
+                if isinstance(data, dict):
+                    self.current_weather_data = {
+                        "temp": data.get("temp"),
+                        "st": data.get("st"),  # Sensación térmica
+                        "humidity": data.get("humidity"),
+                        "pressure": data.get("pressure"),
+                        "visibility": data.get("visibility"),
+                        "wind_speed": data.get("wind_speed"),
+                        "wind_deg": data.get("wind_deg"),
+                        "weather": data.get("weather"),
+                        "description": data.get("description"),
+                        "id": data.get("id"),
+                        "name": data.get("name"),
+                    }
+                    _LOGGER.info("Updated current weather data for location %s", location_id)
+
+        except aiohttp.ClientError as err:
+            _LOGGER.error("Error fetching current weather: %s", err)
+        except Exception as err:
+            _LOGGER.error("Unexpected error fetching current weather: %s", err)
+
     async def _fetch_forecast(self, location_id: str) -> None:
         """Fetch forecast data."""
         url = f"{API_FORECAST_ENDPOINT}/{location_id}"
         headers = await self._get_headers()
 
         try:
+            _LOGGER.debug("Fetching forecast from: %s", url)
             async with async_timeout.timeout(10):
                 response = await self._session.get(url, headers=headers)
                 response.raise_for_status()
                 data = await response.json()
 
-                # Parse current weather from forecast data
-                # The structure will depend on the actual API response
-                if isinstance(data, list) and len(data) > 0:
-                    current = data[0]
-                    self.current_weather_data = {
-                        "temp": current.get("temperature"),
-                        "humidity": current.get("humidity"),
-                        "pressure": current.get("pressure"),
-                        "wind_speed": current.get("wind_speed"),
-                        "wind_bearing": current.get("wind_direction"),
-                        "description": current.get("description") or current.get("weather"),
-                    }
+                _LOGGER.debug("Forecast response: %s", data)
 
-                    # Store forecast data
-                    self.daily_forecast = data
-                    self.hourly_forecast = data
-                elif isinstance(data, dict):
-                    # Handle if response is a dict with current/forecast keys
-                    self.current_weather_data = data.get("current", {})
-                    self.daily_forecast = data.get("forecast", [])
-                    self.hourly_forecast = data.get("hourly", [])
+                # Parse forecast data structure
+                # Each day has: date, temp_max, temp_min, early_morning, morning, afternoon, night
+                if isinstance(data, list):
+                    # Store daily forecast data
+                    self.daily_forecast = []
+                    self.hourly_forecast = []
+
+                    for day in data:
+                        # Create daily forecast entry
+                        daily_entry = {
+                            "date": day.get("date"),
+                            "temp_max": day.get("temp_max"),
+                            "temp_min": day.get("temp_min"),
+                        }
+                        self.daily_forecast.append(daily_entry)
+
+                        # Create hourly forecasts from time periods
+                        # early_morning (00:00-06:00), morning (06:00-12:00),
+                        # afternoon (12:00-18:00), night (18:00-24:00)
+                        periods = [
+                            ("early_morning", "00:00"),
+                            ("morning", "06:00"),
+                            ("afternoon", "12:00"),
+                            ("night", "18:00"),
+                        ]
+
+                        for period_name, period_time in periods:
+                            period_data = day.get(period_name, {})
+                            if period_data:
+                                hourly_entry = {
+                                    "date": day.get("date"),
+                                    "time": period_time,
+                                    "datetime": f"{day.get('date')}T{period_time}:00",
+                                    "temperature": period_data.get("temperature"),
+                                    "weather": period_data.get("weather"),
+                                    "description": period_data.get("description"),
+                                    "humidity": period_data.get("humidity"),
+                                    "wind_speed": period_data.get("wind_speed"),
+                                    "wind_direction": period_data.get("wind_direction"),
+                                }
+                                self.hourly_forecast.append(hourly_entry)
+
+                    _LOGGER.info(
+                        "Parsed %d daily forecasts and %d hourly forecasts",
+                        len(self.daily_forecast),
+                        len(self.hourly_forecast),
+                    )
 
         except aiohttp.ClientError as err:
             _LOGGER.error("Error fetching forecast: %s", err)
