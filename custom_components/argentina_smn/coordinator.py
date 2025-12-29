@@ -66,10 +66,13 @@ class SMNTokenManager:
     async def fetch_token(self) -> str:
         """Fetch JWT token from SMN website."""
         try:
+            _LOGGER.debug("Fetching JWT token from %s", TOKEN_URL)
             async with async_timeout.timeout(10):
                 response = await self._session.get(TOKEN_URL)
                 response.raise_for_status()
                 html = await response.text()
+
+                _LOGGER.debug("Received HTML response, length: %d bytes", len(html))
 
                 # Look for token in localStorage.setItem or similar patterns
                 # Pattern: localStorage.setItem('token', 'eyJ...')
@@ -78,14 +81,20 @@ class SMNTokenManager:
 
                 if not match:
                     # Try alternative pattern: "token":"eyJ..."
+                    _LOGGER.debug("First pattern not found, trying alternative pattern")
                     token_pattern = r"['\"]token['\"]\s*:\s*['\"]([^'\"]+)['\"]"
                     match = re.search(token_pattern, html)
 
                 if not match:
+                    # Log a snippet of HTML to help debug
+                    snippet = html[:500] if len(html) > 500 else html
+                    _LOGGER.error(
+                        "Could not find token in HTML. First 500 chars: %s", snippet
+                    )
                     raise UpdateFailed("Could not find token in HTML")
 
                 token = match.group(1)
-                _LOGGER.debug("Successfully fetched JWT token")
+                _LOGGER.info("Successfully fetched JWT token (length: %d)", len(token))
 
                 # Decode token to get expiration
                 payload = self._decode_jwt_payload(token)
@@ -93,16 +102,20 @@ class SMNTokenManager:
                     self._token_expiration = datetime.fromtimestamp(
                         payload["exp"], tz=dt_util.UTC
                     )
-                    _LOGGER.debug(
+                    _LOGGER.info(
                         "Token expires at: %s", self._token_expiration.isoformat()
                     )
+                else:
+                    _LOGGER.warning("Token does not contain expiration field")
 
                 self._token = token
                 return token
 
         except aiohttp.ClientError as err:
+            _LOGGER.error("HTTP error fetching token from %s: %s", TOKEN_URL, err)
             raise UpdateFailed(f"Error fetching token: {err}") from err
         except Exception as err:
+            _LOGGER.error("Unexpected error fetching token: %s", err, exc_info=True)
             raise UpdateFailed(f"Unexpected error fetching token: {err}") from err
 
     async def get_token(self) -> str:
@@ -149,11 +162,16 @@ class ArgentinaSMNData:
 
     async def _get_headers(self) -> dict[str, str]:
         """Get headers with authentication token."""
-        token = await self._token_manager.get_token()
-        return {
-            "Authorization": f"Bearer {token}",
-            "Content-Type": "application/json",
-        }
+        try:
+            token = await self._token_manager.get_token()
+            _LOGGER.debug("Using token for API request (first 20 chars): %s...", token[:20])
+            return {
+                "Authorization": f"Bearer {token}",
+                "Content-Type": "application/json",
+            }
+        except Exception as err:
+            _LOGGER.error("Failed to get authentication token: %s", err)
+            raise
 
     async def _get_location_id(self) -> str:
         """Get the location ID from coordinates."""
@@ -164,10 +182,21 @@ class ArgentinaSMNData:
         headers = await self._get_headers()
 
         try:
+            _LOGGER.debug("Fetching location ID from: %s", url)
             async with async_timeout.timeout(10):
                 response = await self._session.get(url, headers=headers)
+
+                if response.status == 401:
+                    response_text = await response.text()
+                    _LOGGER.error(
+                        "401 Unauthorized when fetching location ID. Response: %s",
+                        response_text[:200]
+                    )
+
                 response.raise_for_status()
                 data = await response.json()
+
+                _LOGGER.debug("Location API response: %s", data)
 
                 # Extract location ID from response
                 # The actual key might differ - adjust based on API response
@@ -178,12 +207,14 @@ class ArgentinaSMNData:
                 else:
                     raise UpdateFailed(f"Unexpected response format: {data}")
 
-                _LOGGER.debug("Location ID for %s,%s: %s", self._latitude, self._longitude, self._location_id)
+                _LOGGER.info("Location ID for %s,%s: %s", self._latitude, self._longitude, self._location_id)
                 return self._location_id
 
         except aiohttp.ClientError as err:
+            _LOGGER.error("HTTP error fetching location ID: %s", err)
             raise UpdateFailed(f"Error fetching location ID: {err}") from err
         except Exception as err:
+            _LOGGER.error("Unexpected error fetching location ID: %s", err, exc_info=True)
             raise UpdateFailed(f"Unexpected error fetching location ID: {err}") from err
 
     async def fetch_data(self) -> None:
