@@ -60,22 +60,55 @@ class ArgentinaSMNConfigFlow(ConfigFlow, domain=DOMAIN):
         Returns:
             Tuple of (is_unique, existing_entry_title)
         """
+        # Tolerance for coordinate comparison (0.0001 degrees ≈ 11 meters)
+        COORD_TOLERANCE = 0.0001
+
         # Check existing entries
-        for entry in self._async_current_entries():
+        existing_entries = self._async_current_entries()
+        _LOGGER.debug(
+            "Checking uniqueness for lat=%s, lon=%s. Found %d existing entries",
+            latitude,
+            longitude,
+            len(existing_entries),
+        )
+
+        for entry in existing_entries:
+            _LOGGER.debug(
+                "Checking entry: %s (track_home=%s, lat=%s, lon=%s)",
+                entry.title,
+                entry.data.get(CONF_TRACK_HOME),
+                entry.data.get(CONF_LATITUDE),
+                entry.data.get(CONF_LONGITUDE),
+            )
+
             if entry.data.get(CONF_TRACK_HOME):
-                # If tracking home, check against home location
+                # If tracking home, check against home location with tolerance
                 if (
-                    self.hass.config.latitude == latitude
-                    and self.hass.config.longitude == longitude
+                    abs(self.hass.config.latitude - latitude) < COORD_TOLERANCE
+                    and abs(self.hass.config.longitude - longitude) < COORD_TOLERANCE
                 ):
+                    _LOGGER.warning(
+                        "Location matches existing home tracking entry: %s", entry.title
+                    )
                     return (False, entry.title)
             else:
-                # Check against configured coordinates
+                # Check against configured coordinates with tolerance
                 entry_lat = entry.data.get(CONF_LATITUDE)
                 entry_lon = entry.data.get(CONF_LONGITUDE)
-                if entry_lat == latitude and entry_lon == longitude:
-                    return (False, entry.title)
+                if entry_lat is not None and entry_lon is not None:
+                    if (
+                        abs(entry_lat - latitude) < COORD_TOLERANCE
+                        and abs(entry_lon - longitude) < COORD_TOLERANCE
+                    ):
+                        _LOGGER.warning(
+                            "Location matches existing entry: %s (lat=%s, lon=%s)",
+                            entry.title,
+                            entry_lat,
+                            entry_lon,
+                        )
+                        return (False, entry.title)
 
+        _LOGGER.debug("Location is unique, allowing setup")
         return (True, None)
 
     async def async_step_user(
