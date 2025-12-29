@@ -1,8 +1,11 @@
 """DataUpdateCoordinator for the SMN integration."""
 from __future__ import annotations
 
-from datetime import timedelta
+import base64
+from datetime import datetime, timedelta
+import json
 import logging
+import re
 from typing import Any
 
 import aiohttp
@@ -12,8 +15,9 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_LATITUDE, CONF_LONGITUDE
 from homeassistant.core import Event, HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from homeassistant.helpers.event import async_track_state_change_event
+from homeassistant.helpers.event import async_track_state_change_event, async_call_later
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from homeassistant.util import dt as dt_util
 
 from .const import (
     API_ALERT_ENDPOINT,
@@ -23,9 +27,99 @@ from .const import (
     CONF_TRACK_HOME,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
+    TOKEN_URL,
 )
 
 _LOGGER = logging.getLogger(__name__)
+
+
+class SMNTokenManager:
+    """Manage JWT token for SMN API authentication."""
+
+    def __init__(self, session: aiohttp.ClientSession) -> None:
+        """Initialize the token manager."""
+        self._session = session
+        self._token: str | None = None
+        self._token_expiration: datetime | None = None
+
+    def _decode_jwt_payload(self, token: str) -> dict[str, Any]:
+        """Decode JWT payload without verification."""
+        try:
+            # Split the JWT into parts
+            parts = token.split(".")
+            if len(parts) != 3:
+                raise ValueError("Invalid JWT format")
+
+            # Decode the payload (second part)
+            # Add padding if needed
+            payload = parts[1]
+            padding = 4 - len(payload) % 4
+            if padding != 4:
+                payload += "=" * padding
+
+            decoded = base64.urlsafe_b64decode(payload)
+            return json.loads(decoded)
+        except Exception as err:
+            _LOGGER.error("Error decoding JWT: %s", err)
+            return {}
+
+    async def fetch_token(self) -> str:
+        """Fetch JWT token from SMN website."""
+        try:
+            async with async_timeout.timeout(10):
+                response = await self._session.get(TOKEN_URL)
+                response.raise_for_status()
+                html = await response.text()
+
+                # Look for token in localStorage.setItem or similar patterns
+                # Pattern: localStorage.setItem('token', 'eyJ...')
+                token_pattern = r"localStorage\.setItem\(['\"]token['\"]\s*,\s*['\"]([^'\"]+)['\"]"
+                match = re.search(token_pattern, html)
+
+                if not match:
+                    # Try alternative pattern: "token":"eyJ..."
+                    token_pattern = r"['\"]token['\"]\s*:\s*['\"]([^'\"]+)['\"]"
+                    match = re.search(token_pattern, html)
+
+                if not match:
+                    raise UpdateFailed("Could not find token in HTML")
+
+                token = match.group(1)
+                _LOGGER.debug("Successfully fetched JWT token")
+
+                # Decode token to get expiration
+                payload = self._decode_jwt_payload(token)
+                if "exp" in payload:
+                    self._token_expiration = datetime.fromtimestamp(
+                        payload["exp"], tz=dt_util.UTC
+                    )
+                    _LOGGER.debug(
+                        "Token expires at: %s", self._token_expiration.isoformat()
+                    )
+
+                self._token = token
+                return token
+
+        except aiohttp.ClientError as err:
+            raise UpdateFailed(f"Error fetching token: {err}") from err
+        except Exception as err:
+            raise UpdateFailed(f"Unexpected error fetching token: {err}") from err
+
+    async def get_token(self) -> str:
+        """Get valid token, refreshing if necessary."""
+        # Check if we have a token and it's still valid
+        if self._token and self._token_expiration:
+            # Refresh if token expires in less than 5 minutes
+            if dt_util.utcnow() < (self._token_expiration - timedelta(minutes=5)):
+                return self._token
+
+        # Fetch new token
+        return await self.fetch_token()
+
+    @property
+    def token_expiration(self) -> datetime | None:
+        """Return token expiration time."""
+        return self._token_expiration
 
 
 class ArgentinaSMNData:
@@ -36,6 +130,7 @@ class ArgentinaSMNData:
         hass: HomeAssistant,
         latitude: float,
         longitude: float,
+        token_manager: SMNTokenManager,
         location_id: str | None = None,
     ) -> None:
         """Initialize the data object."""
@@ -44,6 +139,7 @@ class ArgentinaSMNData:
         self._longitude = longitude
         self._location_id = location_id
         self._session = async_get_clientsession(hass)
+        self._token_manager = token_manager
 
         self.current_weather_data: dict[str, Any] = {}
         self.daily_forecast: list[dict[str, Any]] = []
@@ -51,16 +147,25 @@ class ArgentinaSMNData:
         self.alerts: list[dict[str, Any]] = []
         self.heat_warnings: list[dict[str, Any]] = []
 
+    async def _get_headers(self) -> dict[str, str]:
+        """Get headers with authentication token."""
+        token = await self._token_manager.get_token()
+        return {
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json",
+        }
+
     async def _get_location_id(self) -> str:
         """Get the location ID from coordinates."""
         if self._location_id:
             return self._location_id
 
         url = f"{API_COORD_ENDPOINT}?lat={self._latitude}&lon={self._longitude}"
+        headers = await self._get_headers()
 
         try:
             async with async_timeout.timeout(10):
-                response = await self._session.get(url)
+                response = await self._session.get(url, headers=headers)
                 response.raise_for_status()
                 data = await response.json()
 
@@ -99,10 +204,11 @@ class ArgentinaSMNData:
     async def _fetch_forecast(self, location_id: str) -> None:
         """Fetch forecast data."""
         url = f"{API_FORECAST_ENDPOINT}/{location_id}"
+        headers = await self._get_headers()
 
         try:
             async with async_timeout.timeout(10):
-                response = await self._session.get(url)
+                response = await self._session.get(url, headers=headers)
                 response.raise_for_status()
                 data = await response.json()
 
@@ -136,10 +242,11 @@ class ArgentinaSMNData:
     async def _fetch_alerts(self, location_id: str) -> None:
         """Fetch weather alerts."""
         url = f"{API_ALERT_ENDPOINT}/{location_id}"
+        headers = await self._get_headers()
 
         try:
             async with async_timeout.timeout(10):
-                response = await self._session.get(url)
+                response = await self._session.get(url, headers=headers)
                 response.raise_for_status()
                 data = await response.json()
 
@@ -162,10 +269,11 @@ class ArgentinaSMNData:
     async def _fetch_heat_warnings(self, area_id: str) -> None:
         """Fetch heat warnings."""
         url = f"{API_HEAT_WARNING_ENDPOINT}/{area_id}"
+        headers = await self._get_headers()
 
         try:
             async with async_timeout.timeout(10):
-                response = await self._session.get(url)
+                response = await self._session.get(url, headers=headers)
                 response.raise_for_status()
                 data = await response.json()
 
@@ -190,6 +298,7 @@ class ArgentinaSMNDataUpdateCoordinator(DataUpdateCoordinator[ArgentinaSMNData])
     ) -> None:
         """Initialize the coordinator."""
         self.track_home = config_entry.data.get(CONF_TRACK_HOME, False)
+        self._token_refresh_unsub = None
 
         if self.track_home:
             latitude = hass.config.latitude
@@ -198,8 +307,12 @@ class ArgentinaSMNDataUpdateCoordinator(DataUpdateCoordinator[ArgentinaSMNData])
             latitude = config_entry.data[CONF_LATITUDE]
             longitude = config_entry.data[CONF_LONGITUDE]
 
+        # Create token manager
+        session = async_get_clientsession(hass)
+        self._token_manager = SMNTokenManager(session)
+
         # Store data handler before calling super().__init__
-        self._smn_data = ArgentinaSMNData(hass, latitude, longitude)
+        self._smn_data = ArgentinaSMNData(hass, latitude, longitude, self._token_manager)
 
         super().__init__(
             hass,
@@ -211,7 +324,54 @@ class ArgentinaSMNDataUpdateCoordinator(DataUpdateCoordinator[ArgentinaSMNData])
     async def _async_update_data(self) -> ArgentinaSMNData:
         """Fetch data from API."""
         await self._smn_data.fetch_data()
+
+        # Schedule token refresh if needed
+        self._schedule_token_refresh()
+
         return self._smn_data
+
+    def _schedule_token_refresh(self) -> None:
+        """Schedule token refresh before expiration."""
+        # Cancel existing refresh if any
+        if self._token_refresh_unsub:
+            self._token_refresh_unsub()
+            self._token_refresh_unsub = None
+
+        # Get token expiration
+        expiration = self._token_manager.token_expiration
+        if not expiration:
+            return
+
+        # Schedule refresh 5 minutes before expiration
+        now = dt_util.utcnow()
+        refresh_time = expiration - timedelta(minutes=5)
+
+        if refresh_time <= now:
+            # Token expires very soon, will be refreshed on next data fetch
+            return
+
+        # Calculate seconds until refresh
+        seconds_until_refresh = (refresh_time - now).total_seconds()
+
+        _LOGGER.debug(
+            "Scheduling token refresh in %.0f seconds (at %s)",
+            seconds_until_refresh,
+            refresh_time.isoformat(),
+        )
+
+        async def _refresh_token(now):
+            """Refresh token callback."""
+            try:
+                await self._token_manager.fetch_token()
+                _LOGGER.info("Token refreshed successfully")
+                # Schedule next refresh
+                self._schedule_token_refresh()
+            except Exception as err:
+                _LOGGER.error("Failed to refresh token: %s", err)
+
+        self._token_refresh_unsub = async_call_later(
+            self.hass, seconds_until_refresh, _refresh_token
+        )
 
     def track_home_location(self) -> None:
         """Track changes in home location."""

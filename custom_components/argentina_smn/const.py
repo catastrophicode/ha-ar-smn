@@ -28,6 +28,9 @@ API_FORECAST_ENDPOINT: Final = f"{API_BASE_URL}/forecast/location"
 API_ALERT_ENDPOINT: Final = f"{API_BASE_URL}/warning/alert/location"
 API_HEAT_WARNING_ENDPOINT: Final = f"{API_BASE_URL}/warning/heat/area"
 
+# Token endpoint
+TOKEN_URL: Final = "https://ws2.smn.gob.ar/"
+
 # Default onboarding locations (Buenos Aires)
 DEFAULT_HOME_LATITUDE: Final = -34.6037
 DEFAULT_HOME_LONGITUDE: Final = -58.3816
