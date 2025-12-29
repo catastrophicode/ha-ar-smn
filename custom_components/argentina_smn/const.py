@@ -1,4 +1,4 @@
-"""Constants for the Argentina SMN integration."""
+"""Constants for the SMN integration."""
 from typing import Final
 
 from homeassistant.components.weather import (

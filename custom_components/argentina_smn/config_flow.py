@@ -1,4 +1,4 @@
-"""Config flow for Argentina SMN Weather integration."""
+"""Config flow for SMN Weather integration."""
 from __future__ import annotations
 
 import logging
@@ -47,7 +47,7 @@ async def async_validate_location(
 
 
 class ArgentinaSMNConfigFlow(ConfigFlow, domain=DOMAIN):
-    """Handle a config flow for Argentina SMN Weather."""
+    """Handle a config flow for SMN Weather."""
 
     VERSION = 1
 

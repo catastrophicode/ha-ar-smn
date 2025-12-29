@@ -1,4 +1,4 @@
-"""Weather platform for Argentina SMN."""
+"""Weather platform for SMN."""
 from __future__ import annotations
 
 from datetime import datetime
@@ -63,7 +63,7 @@ async def async_setup_entry(
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up Argentina SMN weather entity."""
+    """Set up SMN weather entity."""
     coordinator: ArgentinaSMNDataUpdateCoordinator = hass.data[DOMAIN][
         config_entry.entry_id
     ]
@@ -72,7 +72,7 @@ async def async_setup_entry(
     if config_entry.data.get(CONF_TRACK_HOME, False):
         name = HOME_LOCATION_NAME
     else:
-        name = config_entry.data.get("name", "Argentina SMN Weather")
+        name = config_entry.data.get("name", "SMN Weather")
 
     async_add_entities([ArgentinaSMNWeather(coordinator, name, config_entry)], False)
 
@@ -80,7 +80,7 @@ async def async_setup_entry(
 class ArgentinaSMNWeather(
     CoordinatorEntity[ArgentinaSMNDataUpdateCoordinator], WeatherEntity
 ):
-    """Implementation of an Argentina SMN weather entity."""
+    """Implementation of an SMN weather entity."""
 
     _attr_has_entity_name = True
     _attr_native_temperature_unit = UnitOfTemperature.CELSIUS

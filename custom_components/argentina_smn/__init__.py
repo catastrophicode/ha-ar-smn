@@ -1,4 +1,4 @@
-"""The Argentina SMN Weather integration."""
+"""The SMN Weather integration."""
 from __future__ import annotations
 
 import logging
@@ -16,7 +16,7 @@ PLATFORMS = [Platform.WEATHER]
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Set up Argentina SMN from a config entry."""
+    """Set up SMN from a config entry."""
     # Validate that home location is set if tracking home
     if entry.data.get(CONF_TRACK_HOME, False):
         if hass.config.latitude is None or hass.config.longitude is None:

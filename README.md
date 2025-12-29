@@ -1,4 +1,4 @@
-# Argentina SMN Weather Integration
+# SMN Weather Integration
 
 Home Assistant integration for Argentina's National Weather Service (Servicio Meteorológico Nacional).
 
@@ -16,7 +16,7 @@ Home Assistant integration for Argentina's National Weather Service (Servicio Me
 1. Copy the `custom_components/argentina_smn` folder to your Home Assistant `custom_components` directory
 2. Restart Home Assistant
 3. Add the integration through Settings → Devices & Services → Add Integration
-4. Search for "Argentina SMN Weather"
+4. Search for "SMN"
 
 ## Configuration
 

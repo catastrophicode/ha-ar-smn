@@ -1,6 +1,6 @@
 {
   "domain": "argentina_smn",
-  "name": "Argentina SMN Weather",
+  "name": "SMN",
   "codeowners": [],
   "config_flow": true,
   "documentation": "https://github.com/catastrophicode/ha-ar-smn",

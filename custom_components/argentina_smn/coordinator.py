@@ -1,4 +1,4 @@
-"""DataUpdateCoordinator for the Argentina SMN integration."""
+"""DataUpdateCoordinator for the SMN integration."""
 from __future__ import annotations
 
 from datetime import timedelta
@@ -29,7 +29,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class ArgentinaSMNData:
-    """Class to handle Argentina SMN data."""
+    """Class to handle SMN data."""
 
     def __init__(
         self,
@@ -181,7 +181,7 @@ class ArgentinaSMNData:
 
 
 class ArgentinaSMNDataUpdateCoordinator(DataUpdateCoordinator[ArgentinaSMNData]):
-    """Class to manage fetching Argentina SMN data."""
+    """Class to manage fetching SMN data."""
 
     def __init__(
         self,
@@ -198,7 +198,8 @@ class ArgentinaSMNDataUpdateCoordinator(DataUpdateCoordinator[ArgentinaSMNData])
             latitude = config_entry.data[CONF_LATITUDE]
             longitude = config_entry.data[CONF_LONGITUDE]
 
-        self.data = ArgentinaSMNData(hass, latitude, longitude)
+        # Store data handler before calling super().__init__
+        self._smn_data = ArgentinaSMNData(hass, latitude, longitude)
 
         super().__init__(
             hass,
@@ -209,17 +210,17 @@ class ArgentinaSMNDataUpdateCoordinator(DataUpdateCoordinator[ArgentinaSMNData])
 
     async def _async_update_data(self) -> ArgentinaSMNData:
         """Fetch data from API."""
-        await self.data.fetch_data()
-        return self.data
+        await self._smn_data.fetch_data()
+        return self._smn_data
 
     def track_home_location(self) -> None:
         """Track changes in home location."""
 
         async def handle_home_location_update(event: Event) -> None:
             """Handle home location update."""
-            self.data._latitude = self.hass.config.latitude
-            self.data._longitude = self.hass.config.longitude
-            self.data._location_id = None  # Reset to force refetch
+            self._smn_data._latitude = self.hass.config.latitude
+            self._smn_data._longitude = self.hass.config.longitude
+            self._smn_data._location_id = None  # Reset to force refetch
             await self.async_request_refresh()
 
         # This would need to be implemented with proper event tracking
