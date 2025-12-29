@@ -54,10 +54,12 @@ class ArgentinaSMNConfigFlow(ConfigFlow, domain=DOMAIN):
     @callback
     def _async_check_unique_id(
         self, latitude: float, longitude: float
-    ) -> bool:
-        """Check if the location is already configured."""
-        location_key = f"{latitude}-{longitude}"
+    ) -> tuple[bool, str | None]:
+        """Check if the location is already configured.
 
+        Returns:
+            Tuple of (is_unique, existing_entry_title)
+        """
         # Check existing entries
         for entry in self._async_current_entries():
             if entry.data.get(CONF_TRACK_HOME):
@@ -66,15 +68,15 @@ class ArgentinaSMNConfigFlow(ConfigFlow, domain=DOMAIN):
                     self.hass.config.latitude == latitude
                     and self.hass.config.longitude == longitude
                 ):
-                    return False
+                    return (False, entry.title)
             else:
                 # Check against configured coordinates
                 entry_lat = entry.data.get(CONF_LATITUDE)
                 entry_lon = entry.data.get(CONF_LONGITUDE)
                 if entry_lat == latitude and entry_lon == longitude:
-                    return False
+                    return (False, entry.title)
 
-        return True
+        return (True, None)
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
@@ -99,20 +101,28 @@ class ArgentinaSMNConfigFlow(ConfigFlow, domain=DOMAIN):
             )
             if validation_errors:
                 errors.update(validation_errors)
-            # Check if already configured
-            elif not self._async_check_unique_id(latitude, longitude):
-                errors["base"] = "already_configured"
             else:
-                # Create entry
-                return self.async_create_entry(
-                    title=name,
-                    data={
-                        CONF_NAME: name,
-                        CONF_LATITUDE: latitude,
-                        CONF_LONGITUDE: longitude,
-                        CONF_TRACK_HOME: user_input.get(CONF_TRACK_HOME, False),
-                    },
-                )
+                # Check if already configured
+                is_unique, existing_title = self._async_check_unique_id(latitude, longitude)
+                if not is_unique:
+                    errors["base"] = "already_configured"
+                    _LOGGER.warning(
+                        "Location %s, %s is already configured as '%s'",
+                        latitude,
+                        longitude,
+                        existing_title,
+                    )
+                else:
+                    # Create entry
+                    return self.async_create_entry(
+                        title=name,
+                        data={
+                            CONF_NAME: name,
+                            CONF_LATITUDE: latitude,
+                            CONF_LONGITUDE: longitude,
+                            CONF_TRACK_HOME: user_input.get(CONF_TRACK_HOME, False),
+                        },
+                    )
 
         # Show form
         data_schema = vol.Schema(

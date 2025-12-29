@@ -13,7 +13,7 @@
       }
     },
     "error": {
-      "already_configured": "This location is already configured",
+      "already_configured": "This location is already configured. Please remove the existing SMN entry from Devices & Services before adding it again.",
       "invalid_latitude": "Invalid latitude value",
       "invalid_longitude": "Invalid longitude value"
     },
