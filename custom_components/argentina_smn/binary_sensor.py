@@ -12,6 +12,7 @@ from homeassistant.components.binary_sensor import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -68,6 +69,23 @@ class SMNAlertSensor(CoordinatorEntity[ArgentinaSMNDataUpdateCoordinator], Binar
         self._config_entry = config_entry
         self._attr_unique_id = f"{config_entry.entry_id}_alert"
         self._previous_alerts: set[tuple[int, int]] = set()  # (event_id, level)
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return device information."""
+        # Get location name from coordinator
+        device_name = "SMN Weather"
+        if self.coordinator.data and self.coordinator.data.current_weather_data:
+            location_name = self.coordinator.data.current_weather_data.get("name")
+            if location_name:
+                device_name = location_name
+
+        return DeviceInfo(
+            identifiers={(DOMAIN, self._config_entry.entry_id)},
+            name=device_name,
+            manufacturer="Servicio Meteorológico Nacional",
+            entry_type=DeviceEntryType.SERVICE,
+        )
 
     @property
     def is_on(self) -> bool:
@@ -277,6 +295,23 @@ class SMNEventAlertSensor(CoordinatorEntity[ArgentinaSMNDataUpdateCoordinator], 
         self._attr_name = f"Alert {event_name.replace('_', ' ').title()}"
 
     @property
+    def device_info(self) -> DeviceInfo:
+        """Return device information."""
+        # Get location name from coordinator
+        device_name = "SMN Weather"
+        if self.coordinator.data and self.coordinator.data.current_weather_data:
+            location_name = self.coordinator.data.current_weather_data.get("name")
+            if location_name:
+                device_name = location_name
+
+        return DeviceInfo(
+            identifiers={(DOMAIN, self._config_entry.entry_id)},
+            name=device_name,
+            manufacturer="Servicio Meteorológico Nacional",
+            entry_type=DeviceEntryType.SERVICE,
+        )
+
+    @property
     def is_on(self) -> bool:
         """Return True if this alert type is active."""
         if not self.coordinator.data.alerts:
@@ -355,6 +390,23 @@ class SMNShortTermAlertSensor(CoordinatorEntity[ArgentinaSMNDataUpdateCoordinato
         super().__init__(coordinator)
         self._config_entry = config_entry
         self._attr_unique_id = f"{config_entry.entry_id}_shortterm_alert"
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return device information."""
+        # Get location name from coordinator
+        device_name = "SMN Weather"
+        if self.coordinator.data and self.coordinator.data.current_weather_data:
+            location_name = self.coordinator.data.current_weather_data.get("name")
+            if location_name:
+                device_name = location_name
+
+        return DeviceInfo(
+            identifiers={(DOMAIN, self._config_entry.entry_id)},
+            name=device_name,
+            manufacturer="Servicio Meteorológico Nacional",
+            entry_type=DeviceEntryType.SERVICE,
+        )
 
     @property
     def is_on(self) -> bool:

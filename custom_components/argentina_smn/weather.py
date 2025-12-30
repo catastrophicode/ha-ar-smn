@@ -19,6 +19,7 @@ from homeassistant.const import (
     UnitOfTemperature,
 )
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.sun import is_up
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -124,6 +125,19 @@ class ArgentinaSMNWeather(
             if location_name:
                 return location_name
         return self._default_name
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return device information."""
+        # Use location name for device name
+        device_name = self.name
+
+        return DeviceInfo(
+            identifiers={(DOMAIN, self._config_entry.entry_id)},
+            name=device_name,
+            manufacturer="Servicio Meteorológico Nacional",
+            entry_type=DeviceEntryType.SERVICE,
+        )
 
     @property
     def condition(self) -> str | None:
