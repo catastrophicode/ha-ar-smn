@@ -46,7 +46,7 @@ def format_condition(condition: dict | None, sun_is_up: bool = True) -> str:
     """
     # Handle None or missing condition
     if not condition or not isinstance(condition, dict):
-        _LOGGER.debug("format_condition: No valid condition dict, returning default")
+        _LOGGER.warning("format_condition: No valid condition dict, returning default")
         return ATTR_CONDITION_SUNNY if sun_is_up else ATTR_CONDITION_CLEAR_NIGHT
 
     # Get weather ID (required)
@@ -64,10 +64,10 @@ def format_condition(condition: dict | None, sun_is_up: bool = True) -> str:
     # Special handling: Current weather endpoint uses day IDs even at night
     # Convert sunny (ID 3) to clear-night if sun is down
     if ha_condition == ATTR_CONDITION_SUNNY and not sun_is_up:
-        _LOGGER.debug("format_condition: Converted ID %s from sunny to clear-night (sun down)", weather_id)
+        _LOGGER.info("format_condition: Converted ID %s from sunny to clear-night (sun down)", weather_id)
         return ATTR_CONDITION_CLEAR_NIGHT
 
-    _LOGGER.debug("format_condition: Mapped ID %s to %s", weather_id, ha_condition)
+    _LOGGER.info("format_condition: Mapped ID %s to %s", weather_id, ha_condition)
     return ha_condition
 
 
@@ -208,7 +208,7 @@ class ArgentinaSMNWeather(
             if is_daily:
                 # Daily forecast has temp_max and temp_min
                 weather_obj = item.get("weather")
-                _LOGGER.debug("Daily forecast weather object: %s", weather_obj)
+                _LOGGER.info("Daily forecast for %s - weather: %s", item.get("date"), weather_obj)
                 forecast = Forecast(
                     datetime=self._parse_datetime(item.get("date")),
                     native_temperature=item.get("temp_max"),
@@ -218,7 +218,7 @@ class ArgentinaSMNWeather(
             else:
                 # Hourly forecast has individual period data
                 weather_obj = item.get("weather")
-                _LOGGER.debug("Hourly forecast weather object: %s", weather_obj)
+                _LOGGER.info("Hourly forecast for %s - weather: %s", item.get("datetime"), weather_obj)
                 forecast = Forecast(
                     datetime=self._parse_datetime(item.get("datetime")),
                     native_temperature=item.get("temperature"),
