@@ -323,15 +323,14 @@ class ArgentinaSMNData:
                     for day in forecast_data:
                         # Get representative weather condition from afternoon period
                         afternoon = day.get("afternoon", {})
-                        weather_obj = afternoon.get("weather", {}) if isinstance(afternoon, dict) else {}
-                        weather_desc = weather_obj.get("description") if isinstance(weather_obj, dict) else weather_obj
+                        weather_obj = afternoon.get("weather") if isinstance(afternoon, dict) else None
 
-                        # Create daily forecast entry
+                        # Create daily forecast entry - store full weather object to preserve ID
                         daily_entry = {
                             "date": day.get("date"),
                             "temp_max": day.get("temp_max"),
                             "temp_min": day.get("temp_min"),
-                            "weather": weather_desc,
+                            "weather": weather_obj,  # Store full object with id and description
                         }
                         self.daily_forecast.append(daily_entry)
 
@@ -354,16 +353,15 @@ class ArgentinaSMNData:
                                 speed_range = wind_data.get("speed_range", []) if isinstance(wind_data, dict) else []
                                 wind_speed = sum(speed_range) / len(speed_range) if speed_range else wind_data.get("speed") if isinstance(wind_data, dict) else None
 
-                                # Extract weather description
-                                weather_obj = period_data.get("weather", {})
-                                weather_desc = weather_obj.get("description") if isinstance(weather_obj, dict) else weather_obj
+                                # Store full weather object to preserve ID
+                                weather_obj = period_data.get("weather")
 
                                 hourly_entry = {
                                     "date": day.get("date"),
                                     "time": period_time,
                                     "datetime": f"{day.get('date')}T{period_time}:00",
                                     "temperature": period_data.get("temperature"),
-                                    "weather": weather_desc,
+                                    "weather": weather_obj,  # Store full object with id and description
                                     "humidity": period_data.get("humidity"),
                                     "wind_speed": wind_speed,
                                     "wind_direction": wind_data.get("deg") if isinstance(wind_data, dict) else None,
