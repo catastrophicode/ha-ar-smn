@@ -38,17 +38,25 @@ from .coordinator import ArgentinaSMNDataUpdateCoordinator
 _LOGGER = logging.getLogger(__name__)
 
 
-def format_condition(condition: str, sun_is_up: bool = True) -> str:
+def format_condition(condition: str | dict | None, sun_is_up: bool = True) -> str:
     """Map SMN weather condition to HA condition."""
+    # Handle None or empty condition
     if not condition:
         return ATTR_CONDITION_SUNNY if sun_is_up else ATTR_CONDITION_CLEAR_NIGHT
 
-    condition_lower = condition.lower()
+    # If condition is a dict, try to extract the description
+    if isinstance(condition, dict):
+        condition = condition.get("description") or condition.get("weather") or condition.get("name")
+        if not condition:
+            return ATTR_CONDITION_SUNNY if sun_is_up else ATTR_CONDITION_CLEAR_NIGHT
+
+    # Ensure condition is a string
+    condition_str = str(condition).lower()
 
     # Check each HA condition mapping
     for ha_condition, smn_conditions in CONDITIONS_MAP.items():
         for smn_condition in smn_conditions:
-            if smn_condition.lower() in condition_lower:
+            if smn_condition.lower() in condition_str:
                 # Special handling for clear/sunny vs clear night
                 if ha_condition == ATTR_CONDITION_SUNNY and not sun_is_up:
                     return ATTR_CONDITION_CLEAR_NIGHT
