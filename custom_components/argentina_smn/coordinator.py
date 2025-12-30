@@ -24,6 +24,7 @@ from .const import (
     API_COORD_ENDPOINT,
     API_FORECAST_ENDPOINT,
     API_HEAT_WARNING_ENDPOINT,
+    API_SHORTTERM_ALERT_ENDPOINT,
     API_WEATHER_ENDPOINT,
     CONF_TRACK_HOME,
     DEFAULT_SCAN_INTERVAL,
@@ -178,6 +179,7 @@ class ArgentinaSMNData:
         self.daily_forecast: list[dict[str, Any]] = []
         self.hourly_forecast: list[dict[str, Any]] = []
         self.alerts: dict[str, Any] = {}
+        self.shortterm_alerts: list[dict[str, Any]] = []
         self.heat_warnings: dict[str, Any] = {}
 
     async def _get_headers(self) -> dict[str, str]:
@@ -251,6 +253,9 @@ class ArgentinaSMNData:
 
             # Fetch alerts
             await self._fetch_alerts(location_id)
+
+            # Fetch short-term alerts
+            await self._fetch_shortterm_alerts(location_id)
 
         except Exception as err:
             raise UpdateFailed(f"Error fetching SMN data: {err}") from err
@@ -421,6 +426,32 @@ class ArgentinaSMNData:
             _LOGGER.debug("Error fetching alerts (may be normal if none): %s", err)
         except Exception as err:
             _LOGGER.debug("Unexpected error fetching alerts: %s", err)
+
+    async def _fetch_shortterm_alerts(self, location_id: str) -> None:
+        """Fetch short-term severe weather alerts."""
+        url = f"{API_SHORTTERM_ALERT_ENDPOINT}/{location_id}"
+        headers = await self._get_headers()
+
+        try:
+            async with async_timeout.timeout(10):
+                response = await self._session.get(url, headers=headers)
+                response.raise_for_status()
+                data = await response.json()
+
+                # Store short-term alerts data (list of alerts)
+                if isinstance(data, list):
+                    self.shortterm_alerts = data
+                    _LOGGER.info("Fetched %d short-term alerts for location %s",
+                                len(data), location_id)
+                else:
+                    self.shortterm_alerts = []
+
+        except aiohttp.ClientError as err:
+            _LOGGER.debug("Error fetching short-term alerts (may be normal if none): %s", err)
+            self.shortterm_alerts = []
+        except Exception as err:
+            _LOGGER.debug("Unexpected error fetching short-term alerts: %s", err)
+            self.shortterm_alerts = []
 
     async def _fetch_heat_warnings(self, area_id: str) -> None:
         """Fetch heat warnings."""

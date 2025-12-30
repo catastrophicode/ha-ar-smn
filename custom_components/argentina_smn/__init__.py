@@ -16,7 +16,7 @@ from .coordinator import ArgentinaSMNDataUpdateCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
-PLATFORMS = [Platform.WEATHER]
+PLATFORMS = [Platform.WEATHER, Platform.BINARY_SENSOR]
 
 # Service names
 SERVICE_GET_ALERTS = "get_alerts"
