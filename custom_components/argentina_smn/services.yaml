@@ -15,19 +15,36 @@ get_alerts:
         text:
 
 get_alerts_for_location:
-  name: Get alerts for specific location (testing)
+  name: Get alerts for specific location
   description: >
-    Fetch weather alerts for any SMN location ID. This is a testing/debugging service.
-    For production automations, use 'get_alerts' instead.
+    Fetch weather alerts for any SMN location ID.
+    Use 'search_location' service to find location IDs by name.
     Returns active alerts with severity levels, descriptions, and instructions.
   fields:
     location_id:
       name: Location ID
       description: >
         The SMN location ID to fetch alerts for.
-        Find location IDs from the SMN API georef endpoint.
-        Example: 1712 for Ezeiza, 4841 for José María Ezeiza.
+        Use the search_location service to find IDs.
+        Example: 4864 for Ciudad Autónoma de Buenos Aires.
       required: true
-      example: "1712"
+      example: "4864"
+      selector:
+        text:
+
+search_location:
+  name: Search for location by name
+  description: >
+    Search for SMN locations by name to get their location IDs.
+    Returns a list of matching locations with their IDs, coordinates, and details.
+    Use the returned location ID with get_alerts_for_location service.
+  fields:
+    location_name:
+      name: Location Name
+      description: >
+        Name of the city, town, or location to search for.
+        Examples: "Buenos Aires", "Córdoba", "Mendoza", "Rosario".
+      required: true
+      example: "Buenos Aires"
       selector:
         text:
