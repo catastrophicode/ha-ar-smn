@@ -132,26 +132,37 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
             # If no config_entry_id provided, use the first one
             if not config_entry_id:
-                if hass.data[DOMAIN]:
+                if hass.data.get(DOMAIN):
                     config_entry_id = next(iter(hass.data[DOMAIN]))
                 else:
                     _LOGGER.error("No SMN integration configured")
-                    return {"active_alerts": [], "max_severity": "info"}
+                    return {"active_alerts": [], "max_severity": "info", "area_id": None}
 
             # Get coordinator
             coordinator = hass.data[DOMAIN].get(config_entry_id)
             if not coordinator:
-                _LOGGER.error("Invalid config_entry_id: %s", config_entry_id)
-                return {"active_alerts": [], "max_severity": "info"}
+                _LOGGER.warning(
+                    "Invalid config_entry_id: %s. Use the integration's config entry ID, not location ID. "
+                    "Leave empty to use the default integration.",
+                    config_entry_id
+                )
+                return {"active_alerts": [], "max_severity": "info", "area_id": None}
 
             # Parse and return alerts
-            return _parse_alerts(coordinator.data.alerts)
+            result = _parse_alerts(coordinator.data.alerts)
+            _LOGGER.info(
+                "Alerts service called: found %d active alerts with max severity '%s'",
+                len(result.get("active_alerts", [])),
+                result.get("max_severity", "info")
+            )
+            return result
 
         hass.services.async_register(
             DOMAIN,
             SERVICE_GET_ALERTS,
             handle_get_alerts,
             schema=SERVICE_GET_ALERTS_SCHEMA,
+            supports_response="only",
         )
 
     # Set up platforms
