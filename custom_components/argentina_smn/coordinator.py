@@ -271,20 +271,25 @@ class ArgentinaSMNData:
 
                 # Parse current weather data
                 if isinstance(data, dict):
+                    # Extract wind data
+                    wind_data = data.get("wind", {})
+                    location_data = data.get("location", {})
+
                     self.current_weather_data = {
-                        "temp": data.get("temp"),
-                        "st": data.get("st"),  # Sensación térmica
+                        "temperature": data.get("temperature"),
+                        "feels_like": data.get("feels_like"),
                         "humidity": data.get("humidity"),
                         "pressure": data.get("pressure"),
                         "visibility": data.get("visibility"),
-                        "wind_speed": data.get("wind_speed"),
-                        "wind_deg": data.get("wind_deg"),
+                        "wind_speed": wind_data.get("speed") if isinstance(wind_data, dict) else None,
+                        "wind_deg": wind_data.get("deg") if isinstance(wind_data, dict) else None,
                         "weather": data.get("weather"),
-                        "description": data.get("description"),
-                        "id": data.get("id"),
-                        "name": data.get("name"),
+                        "name": location_data.get("name") if isinstance(location_data, dict) else None,
                     }
-                    _LOGGER.info("Updated current weather data for location %s", location_id)
+                    _LOGGER.info("Updated current weather data for location %s: temp=%s, feels_like=%s",
+                                location_id,
+                                self.current_weather_data.get("temperature"),
+                                self.current_weather_data.get("feels_like"))
 
         except aiohttp.ClientError as err:
             _LOGGER.error("Error fetching current weather: %s", err)
@@ -306,18 +311,27 @@ class ArgentinaSMNData:
                 _LOGGER.debug("Forecast response: %s", data)
 
                 # Parse forecast data structure
+                # Response has a "forecast" array with daily data
                 # Each day has: date, temp_max, temp_min, early_morning, morning, afternoon, night
-                if isinstance(data, list):
+                forecast_data = data.get("forecast", []) if isinstance(data, dict) else data
+
+                if isinstance(forecast_data, list):
                     # Store daily forecast data
                     self.daily_forecast = []
                     self.hourly_forecast = []
 
-                    for day in data:
+                    for day in forecast_data:
+                        # Get representative weather condition from afternoon period
+                        afternoon = day.get("afternoon", {})
+                        weather_obj = afternoon.get("weather", {}) if isinstance(afternoon, dict) else {}
+                        weather_desc = weather_obj.get("description") if isinstance(weather_obj, dict) else weather_obj
+
                         # Create daily forecast entry
                         daily_entry = {
                             "date": day.get("date"),
                             "temp_max": day.get("temp_max"),
                             "temp_min": day.get("temp_min"),
+                            "weather": weather_desc,
                         }
                         self.daily_forecast.append(daily_entry)
 
@@ -332,18 +346,27 @@ class ArgentinaSMNData:
                         ]
 
                         for period_name, period_time in periods:
-                            period_data = day.get(period_name, {})
-                            if period_data:
+                            period_data = day.get(period_name)
+                            if period_data and isinstance(period_data, dict):
+                                # Extract wind data
+                                wind_data = period_data.get("wind", {})
+                                # Use average of speed_range if available, otherwise single speed
+                                speed_range = wind_data.get("speed_range", []) if isinstance(wind_data, dict) else []
+                                wind_speed = sum(speed_range) / len(speed_range) if speed_range else wind_data.get("speed") if isinstance(wind_data, dict) else None
+
+                                # Extract weather description
+                                weather_obj = period_data.get("weather", {})
+                                weather_desc = weather_obj.get("description") if isinstance(weather_obj, dict) else weather_obj
+
                                 hourly_entry = {
                                     "date": day.get("date"),
                                     "time": period_time,
                                     "datetime": f"{day.get('date')}T{period_time}:00",
                                     "temperature": period_data.get("temperature"),
-                                    "weather": period_data.get("weather"),
-                                    "description": period_data.get("description"),
+                                    "weather": weather_desc,
                                     "humidity": period_data.get("humidity"),
-                                    "wind_speed": period_data.get("wind_speed"),
-                                    "wind_direction": period_data.get("wind_direction"),
+                                    "wind_speed": wind_speed,
+                                    "wind_direction": wind_data.get("deg") if isinstance(wind_data, dict) else None,
                                 }
                                 self.hourly_forecast.append(hourly_entry)
 

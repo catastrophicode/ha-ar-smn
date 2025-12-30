@@ -152,7 +152,12 @@ class ArgentinaSMNWeather(
     @property
     def native_temperature(self) -> float | None:
         """Return the temperature."""
-        return self.coordinator.data.current_weather_data.get("temp")
+        return self.coordinator.data.current_weather_data.get("temperature")
+
+    @property
+    def native_apparent_temperature(self) -> float | None:
+        """Return the apparent temperature (feels like)."""
+        return self.coordinator.data.current_weather_data.get("feels_like")
 
     @property
     def humidity(self) -> float | None:
@@ -201,15 +206,14 @@ class ArgentinaSMNWeather(
                     datetime=self._parse_datetime(item.get("date")),
                     native_temperature=item.get("temp_max"),
                     native_templow=item.get("temp_min"),
+                    condition=format_condition(item.get("weather", "")),
                 )
             else:
                 # Hourly forecast has individual period data
                 forecast = Forecast(
                     datetime=self._parse_datetime(item.get("datetime")),
                     native_temperature=item.get("temperature"),
-                    condition=format_condition(
-                        item.get("description") or item.get("weather", "")
-                    ),
+                    condition=format_condition(item.get("weather", "")),
                     humidity=item.get("humidity"),
                     native_wind_speed=item.get("wind_speed"),
                     wind_bearing=item.get("wind_direction"),
