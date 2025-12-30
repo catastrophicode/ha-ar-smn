@@ -75,27 +75,46 @@ class SMNTokenManager:
 
                 _LOGGER.debug("Received HTML response, length: %d bytes", len(html))
 
-                # Look for token in localStorage.setItem or similar patterns
-                # Pattern: localStorage.setItem('token', 'eyJ...')
-                token_pattern = r"localStorage\.setItem\(['\"]token['\"]\s*,\s*['\"]([^'\"]+)['\"]"
-                match = re.search(token_pattern, html)
+                # Try multiple patterns to find the token
+                patterns = [
+                    # Pattern 1: localStorage.setItem('token', 'eyJ...')
+                    r"localStorage\.setItem\(['\"]token['\"]\s*,\s*['\"]([^'\"]+)['\"]",
+                    # Pattern 2: localStorage.setItem("token", "eyJ...")
+                    r'localStorage\.setItem\("token"\s*,\s*"([^"]+)"',
+                    # Pattern 3: "token":"eyJ..."
+                    r'["\']token["\']\s*:\s*["\']([^"\']+)["\']',
+                    # Pattern 4: token = "eyJ..."
+                    r'token\s*=\s*["\']([^"\']+)["\']',
+                    # Pattern 5: setItem('token','eyJ...')
+                    r"setItem\(['\"]token['\"]\s*,\s*['\"]([^'\"]+)['\"]",
+                    # Pattern 6: var/let/const token = "eyJ..."
+                    r'(?:var|let|const)\s+token\s*=\s*["\']([^"\']+)["\']',
+                ]
 
-                if not match:
-                    # Try alternative pattern: "token":"eyJ..."
-                    _LOGGER.debug("First pattern not found, trying alternative pattern")
-                    token_pattern = r"['\"]token['\"]\s*:\s*['\"]([^'\"]+)['\"]"
-                    match = re.search(token_pattern, html)
+                token = None
+                for i, pattern in enumerate(patterns, 1):
+                    match = re.search(pattern, html)
+                    if match:
+                        token = match.group(1)
+                        _LOGGER.info("Found token using pattern %d (length: %d)", i, len(token))
+                        break
 
-                if not match:
-                    # Log a snippet of HTML to help debug
-                    snippet = html[:500] if len(html) > 500 else html
+                if not token:
+                    # Log HTML snippet for debugging
+                    lines = html.split('\n')
+                    relevant_lines = [line for line in lines if 'token' in line.lower()]
                     _LOGGER.error(
-                        "Could not find token in HTML. First 500 chars: %s", snippet
+                        "Could not find token in HTML. Lines containing 'token' (%d found):",
+                        len(relevant_lines)
                     )
-                    raise UpdateFailed("Could not find token in HTML")
+                    for line in relevant_lines[:5]:  # Log first 5 matches
+                        _LOGGER.error("  %s", line.strip()[:200])
 
-                token = match.group(1)
-                _LOGGER.info("Successfully fetched JWT token (length: %d)", len(token))
+                    raise UpdateFailed("Could not find token in HTML. Check logs for details.")
+
+                # Validate token format (JWT should start with eyJ)
+                if not token.startswith('eyJ'):
+                    _LOGGER.warning("Token doesn't look like a JWT (doesn't start with 'eyJ'): %s...", token[:20])
 
                 # Decode token to get expiration
                 payload = self._decode_jwt_payload(token)
