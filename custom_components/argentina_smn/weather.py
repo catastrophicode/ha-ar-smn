@@ -28,7 +28,6 @@ from homeassistant.util import dt as dt_util
 from .const import (
     ATTR_MAP,
     CONDITION_ID_MAP,
-    CONDITIONS_MAP,
     CONF_TRACK_HOME,
     DOMAIN,
     FORECAST_MAP,
@@ -39,40 +38,37 @@ from .coordinator import ArgentinaSMNDataUpdateCoordinator
 _LOGGER = logging.getLogger(__name__)
 
 
-def format_condition(condition: str | dict | None, sun_is_up: bool = True) -> str:
-    """Map SMN weather condition to HA condition."""
-    # Handle None or empty condition
-    if not condition:
+def format_condition(condition: dict | None, sun_is_up: bool = True) -> str:
+    """Map SMN weather condition ID to HA condition.
+
+    Condition MUST be a dict with an 'id' field from the SMN API.
+    Only ID-based mapping is used for accuracy.
+    """
+    # Handle None or missing condition
+    if not condition or not isinstance(condition, dict):
+        _LOGGER.debug("format_condition: No valid condition dict, returning default")
         return ATTR_CONDITION_SUNNY if sun_is_up else ATTR_CONDITION_CLEAR_NIGHT
 
-    # If condition is a dict, try to use the ID first
-    if isinstance(condition, dict):
-        # Try to get condition by ID (preferred method)
-        weather_id = condition.get("id")
-        if weather_id is not None:
-            ha_condition = CONDITION_ID_MAP.get(weather_id)
-            if ha_condition:
-                return ha_condition
+    # Get weather ID (required)
+    weather_id = condition.get("id")
+    if weather_id is None:
+        _LOGGER.warning("format_condition: Weather dict has no 'id' field: %s", condition)
+        return ATTR_CONDITION_SUNNY if sun_is_up else ATTR_CONDITION_CLEAR_NIGHT
 
-        # Fallback to text description
-        condition = condition.get("description") or condition.get("weather") or condition.get("name")
-        if not condition:
-            return ATTR_CONDITION_SUNNY if sun_is_up else ATTR_CONDITION_CLEAR_NIGHT
+    # Map ID to HA condition
+    ha_condition = CONDITION_ID_MAP.get(weather_id)
+    if not ha_condition:
+        _LOGGER.warning("format_condition: Unknown weather ID: %s", weather_id)
+        return ATTR_CONDITION_SUNNY if sun_is_up else ATTR_CONDITION_CLEAR_NIGHT
 
-    # Ensure condition is a string
-    condition_str = str(condition).lower()
+    # Special handling: Current weather endpoint uses day IDs even at night
+    # Convert sunny (ID 3) to clear-night if sun is down
+    if ha_condition == ATTR_CONDITION_SUNNY and not sun_is_up:
+        _LOGGER.debug("format_condition: Converted ID %s from sunny to clear-night (sun down)", weather_id)
+        return ATTR_CONDITION_CLEAR_NIGHT
 
-    # Check each HA condition mapping using text
-    for ha_condition, smn_conditions in CONDITIONS_MAP.items():
-        for smn_condition in smn_conditions:
-            if smn_condition.lower() in condition_str:
-                # Special handling for clear/sunny vs clear night
-                if ha_condition == ATTR_CONDITION_SUNNY and not sun_is_up:
-                    return ATTR_CONDITION_CLEAR_NIGHT
-                return ha_condition
-
-    # Default to sunny/clear-night
-    return ATTR_CONDITION_SUNNY if sun_is_up else ATTR_CONDITION_CLEAR_NIGHT
+    _LOGGER.debug("format_condition: Mapped ID %s to %s", weather_id, ha_condition)
+    return ha_condition
 
 
 async def async_setup_entry(
@@ -211,18 +207,22 @@ class ArgentinaSMNWeather(
 
             if is_daily:
                 # Daily forecast has temp_max and temp_min
+                weather_obj = item.get("weather")
+                _LOGGER.debug("Daily forecast weather object: %s", weather_obj)
                 forecast = Forecast(
                     datetime=self._parse_datetime(item.get("date")),
                     native_temperature=item.get("temp_max"),
                     native_templow=item.get("temp_min"),
-                    condition=format_condition(item.get("weather", "")),
+                    condition=format_condition(weather_obj),
                 )
             else:
                 # Hourly forecast has individual period data
+                weather_obj = item.get("weather")
+                _LOGGER.debug("Hourly forecast weather object: %s", weather_obj)
                 forecast = Forecast(
                     datetime=self._parse_datetime(item.get("datetime")),
                     native_temperature=item.get("temperature"),
-                    condition=format_condition(item.get("weather", "")),
+                    condition=format_condition(weather_obj),
                     humidity=item.get("humidity"),
                     native_wind_speed=item.get("wind_speed"),
                     wind_bearing=item.get("wind_direction"),
