@@ -106,13 +106,31 @@ class ArgentinaSMNWeather(
     ) -> None:
         """Initialize the weather entity."""
         super().__init__(coordinator)
-        self._attr_name = name
+        self._config_entry = config_entry
+        self._default_name = name
         self._attr_unique_id = f"{config_entry.entry_id}"
-        self._attr_device_info = DeviceInfo(
+
+    @property
+    def name(self) -> str:
+        """Return the name of the entity."""
+        # Use location name from API if available, otherwise use default
+        if self.coordinator.data and self.coordinator.data.current_weather_data:
+            location_name = self.coordinator.data.current_weather_data.get("name")
+            if location_name:
+                return location_name
+        return self._default_name
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return device info."""
+        # Use location name from API if available
+        device_name = self.name
+
+        return DeviceInfo(
             entry_type=DeviceEntryType.SERVICE,
-            identifiers={(DOMAIN, config_entry.entry_id)},
+            identifiers={(DOMAIN, self._config_entry.entry_id)},
             manufacturer="Servicio Meteorológico Nacional",
-            name=name,
+            name=device_name,
         )
 
     @property
