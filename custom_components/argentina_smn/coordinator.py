@@ -177,8 +177,8 @@ class ArgentinaSMNData:
         self.current_weather_data: dict[str, Any] = {}
         self.daily_forecast: list[dict[str, Any]] = []
         self.hourly_forecast: list[dict[str, Any]] = []
-        self.alerts: list[dict[str, Any]] = []
-        self.heat_warnings: list[dict[str, Any]] = []
+        self.alerts: dict[str, Any] = {}
+        self.heat_warnings: dict[str, Any] = {}
 
     async def _get_headers(self) -> dict[str, str]:
         """Get headers with authentication token."""
@@ -404,16 +404,18 @@ class ArgentinaSMNData:
                 response.raise_for_status()
                 data = await response.json()
 
-                # Store alerts
-                if isinstance(data, list):
+                # Store full alerts data (dict with warnings, reports, area_id)
+                if isinstance(data, dict):
                     self.alerts = data
-                elif isinstance(data, dict):
-                    self.alerts = [data]
+                    _LOGGER.info("Fetched alerts for location %s: %d warnings",
+                                location_id, len(data.get("warnings", [])))
 
                     # Get area_id for heat warnings if available
                     area_id = data.get("area_id")
                     if area_id:
                         await self._fetch_heat_warnings(area_id)
+                else:
+                    self.alerts = {}
 
         except aiohttp.ClientError as err:
             _LOGGER.debug("Error fetching alerts (may be normal if none): %s", err)
@@ -431,10 +433,13 @@ class ArgentinaSMNData:
                 response.raise_for_status()
                 data = await response.json()
 
-                if isinstance(data, list):
+                # Store heat warning data as dict
+                if isinstance(data, dict):
                     self.heat_warnings = data
-                elif isinstance(data, dict):
-                    self.heat_warnings = [data]
+                    _LOGGER.info("Fetched heat warning for area %s: level=%s",
+                                area_id, data.get("level"))
+                else:
+                    self.heat_warnings = {}
 
         except aiohttp.ClientError as err:
             _LOGGER.debug("Error fetching heat warnings (may be normal if none): %s", err)

@@ -94,6 +94,7 @@ class ArgentinaSMNWeather(
 ):
     """Implementation of an SMN weather entity."""
 
+    _attr_attribution = "Data provided by Servicio Meteorológico Nacional Argentina"
     _attr_has_entity_name = True
     _attr_native_temperature_unit = UnitOfTemperature.CELSIUS
     _attr_native_pressure_unit = UnitOfPressure.HPA

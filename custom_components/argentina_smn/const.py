@@ -126,3 +126,27 @@ ATTR_MAP: Final = {
     "weather": "weather",
     "description": "description",
 }
+
+# Alert event ID mappings - SMN event ID to event name
+ALERT_EVENT_MAP: Final = {
+    37: "lluvia",  # Rain
+    39: "viento",  # Wind
+    40: "niebla",  # Fog
+    41: "tormenta",  # Thunderstorm
+    42: "nevada",  # Snow
+    43: "altas_temperaturas",  # High temperatures
+    44: "bajas_temperaturas",  # Low temperatures
+    45: "ceniza_volcanica",  # Volcanic ash
+    46: "polvo",  # Dust
+    47: "viento_zonda",  # Zonda wind
+    54: "humo",  # Smoke
+}
+
+# Alert level mappings - SMN alert level to severity
+ALERT_LEVEL_MAP: Final = {
+    1: {"name": "none", "color": "white", "severity": "info"},
+    2: {"name": "advertencia", "color": "violeta", "severity": "warning"},  # Advisory
+    3: {"name": "amarillo", "color": "amarillo", "severity": "warning"},  # Yellow alert
+    4: {"name": "naranja", "color": "naranja", "severity": "error"},  # Orange alert
+    5: {"name": "rojo", "color": "rojo", "severity": "error"},  # Red alert
+}

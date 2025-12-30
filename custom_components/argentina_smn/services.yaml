@@ -1,0 +1,14 @@
+# Services for the SMN Weather integration
+get_alerts:
+  name: Get weather alerts
+  description: Get current weather alerts and warnings for a location from SMN.
+  fields:
+    config_entry_id:
+      name: Config Entry ID
+      description: The ID of the SMN integration config entry. If not provided, uses the first configured integration.
+      required: false
+      example: "01234567890abcdef01234567890abcd"
+      selector:
+        text:
+  response:
+    type: result
