@@ -13,3 +13,21 @@ get_alerts:
       example: "01234567890abcdef01234567890abcd"
       selector:
         text:
+
+get_alerts_for_location:
+  name: Get alerts for specific location (testing)
+  description: >
+    Fetch weather alerts for any SMN location ID. This is a testing/debugging service.
+    For production automations, use 'get_alerts' instead.
+    Returns active alerts with severity levels, descriptions, and instructions.
+  fields:
+    location_id:
+      name: Location ID
+      description: >
+        The SMN location ID to fetch alerts for.
+        Find location IDs from the SMN API georef endpoint.
+        Example: 1712 for Ezeiza, 4841 for José María Ezeiza.
+      required: true
+      example: "1712"
+      selector:
+        text:

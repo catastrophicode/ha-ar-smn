@@ -20,11 +20,18 @@ PLATFORMS = [Platform.WEATHER]
 
 # Service names
 SERVICE_GET_ALERTS = "get_alerts"
+SERVICE_GET_ALERTS_FOR_LOCATION = "get_alerts_for_location"
 
 # Service schemas
 SERVICE_GET_ALERTS_SCHEMA = vol.Schema(
     {
         vol.Optional("config_entry_id"): cv.string,
+    }
+)
+
+SERVICE_GET_ALERTS_FOR_LOCATION_SCHEMA = vol.Schema(
+    {
+        vol.Required("location_id"): cv.string,
     }
 )
 
@@ -162,6 +169,64 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             SERVICE_GET_ALERTS,
             handle_get_alerts,
             schema=SERVICE_GET_ALERTS_SCHEMA,
+            supports_response="only",
+        )
+
+    # Register testing service (only once)
+    if not hass.services.has_service(DOMAIN, SERVICE_GET_ALERTS_FOR_LOCATION):
+        async def handle_get_alerts_for_location(call: ServiceCall) -> dict[str, Any]:
+            """Handle get_alerts_for_location service call (for testing)."""
+            location_id = call.data.get("location_id")
+
+            # Get token manager from first available coordinator
+            if not hass.data.get(DOMAIN):
+                _LOGGER.error("No SMN integration configured. Set up integration first.")
+                return {"active_alerts": [], "max_severity": "info", "area_id": None}
+
+            # Get first coordinator to access token manager
+            first_entry_id = next(iter(hass.data[DOMAIN]))
+            coordinator = hass.data[DOMAIN][first_entry_id]
+
+            # Fetch alerts directly from API
+            try:
+                import aiohttp
+                import async_timeout
+                from .const import API_ALERT_ENDPOINT
+
+                token = await coordinator._smn_data._token_manager.get_token()
+                headers = {
+                    "Authorization": f"JWT {token}",
+                    "Accept": "application/json",
+                }
+
+                url = f"{API_ALERT_ENDPOINT}/{location_id}"
+                _LOGGER.info("Fetching alerts for location ID: %s", location_id)
+
+                async with async_timeout.timeout(10):
+                    session = coordinator._smn_data._session
+                    response = await session.get(url, headers=headers)
+                    response.raise_for_status()
+                    data = await response.json()
+
+                # Parse and return alerts
+                result = _parse_alerts(data)
+                _LOGGER.info(
+                    "Fetched alerts for location %s: %d active alerts with max severity '%s'",
+                    location_id,
+                    len(result.get("active_alerts", [])),
+                    result.get("max_severity", "info")
+                )
+                return result
+
+            except Exception as err:
+                _LOGGER.error("Error fetching alerts for location %s: %s", location_id, err)
+                return {"active_alerts": [], "max_severity": "info", "area_id": None, "error": str(err)}
+
+        hass.services.async_register(
+            DOMAIN,
+            SERVICE_GET_ALERTS_FOR_LOCATION,
+            handle_get_alerts_for_location,
+            schema=SERVICE_GET_ALERTS_FOR_LOCATION_SCHEMA,
             supports_response="only",
         )
 
