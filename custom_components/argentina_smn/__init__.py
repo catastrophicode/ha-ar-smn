@@ -278,14 +278,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 locations = []
                 if isinstance(data, list):
                     for loc in data:
+                        # Extract coord once to avoid calling get() on a list
+                        coord = loc.get("coord")
                         locations.append({
                             "id": loc.get("id"),
                             "name": loc.get("name"),
                             "department": loc.get("department"),
                             "province": loc.get("province"),
                             "type": loc.get("type"),
-                            "latitude": loc.get("coord", {}).get("lat") if isinstance(loc.get("coord"), dict) else None,
-                            "longitude": loc.get("coord", {}).get("lon") if isinstance(loc.get("coord"), dict) else None,
+                            "latitude": coord.get("lat") if isinstance(coord, dict) else None,
+                            "longitude": coord.get("lon") if isinstance(coord, dict) else None,
                         })
 
                 _LOGGER.info(
