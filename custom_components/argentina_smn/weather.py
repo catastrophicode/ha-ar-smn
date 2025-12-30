@@ -27,6 +27,7 @@ from homeassistant.util import dt as dt_util
 
 from .const import (
     ATTR_MAP,
+    CONDITION_ID_MAP,
     CONDITIONS_MAP,
     CONF_TRACK_HOME,
     DOMAIN,
@@ -44,8 +45,16 @@ def format_condition(condition: str | dict | None, sun_is_up: bool = True) -> st
     if not condition:
         return ATTR_CONDITION_SUNNY if sun_is_up else ATTR_CONDITION_CLEAR_NIGHT
 
-    # If condition is a dict, try to extract the description
+    # If condition is a dict, try to use the ID first
     if isinstance(condition, dict):
+        # Try to get condition by ID (preferred method)
+        weather_id = condition.get("id")
+        if weather_id is not None:
+            ha_condition = CONDITION_ID_MAP.get(weather_id)
+            if ha_condition:
+                return ha_condition
+
+        # Fallback to text description
         condition = condition.get("description") or condition.get("weather") or condition.get("name")
         if not condition:
             return ATTR_CONDITION_SUNNY if sun_is_up else ATTR_CONDITION_CLEAR_NIGHT
@@ -53,7 +62,7 @@ def format_condition(condition: str | dict | None, sun_is_up: bool = True) -> st
     # Ensure condition is a string
     condition_str = str(condition).lower()
 
-    # Check each HA condition mapping
+    # Check each HA condition mapping using text
     for ha_condition, smn_conditions in CONDITIONS_MAP.items():
         for smn_condition in smn_conditions:
             if smn_condition.lower() in condition_str:
