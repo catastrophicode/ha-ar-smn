@@ -325,6 +325,13 @@ class ArgentinaSMNData:
                         afternoon = day.get("afternoon", {})
                         weather_obj = afternoon.get("weather") if isinstance(afternoon, dict) else None
 
+                        _LOGGER.info(
+                            "Parsing daily forecast for %s: afternoon=%s, weather_obj=%s",
+                            day.get("date"),
+                            type(afternoon).__name__,
+                            weather_obj
+                        )
+
                         # Create daily forecast entry - store full weather object to preserve ID
                         daily_entry = {
                             "date": day.get("date"),
@@ -355,6 +362,13 @@ class ArgentinaSMNData:
 
                                 # Store full weather object to preserve ID
                                 weather_obj = period_data.get("weather")
+
+                                _LOGGER.info(
+                                    "Parsing hourly forecast for %s %s: weather_obj=%s",
+                                    day.get("date"),
+                                    period_name,
+                                    weather_obj
+                                )
 
                                 hourly_entry = {
                                     "date": day.get("date"),
