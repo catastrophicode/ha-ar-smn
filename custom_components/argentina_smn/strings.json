@@ -5,7 +5,6 @@
         "title": "Configure SMN Weather",
         "description": "Set up the Servicio Meteorológico Nacional (SMN) weather integration.",
         "data": {
-          "track_home": "Track home location",
           "latitude": "Latitude",
           "longitude": "Longitude",
           "name": "Location name"
@@ -26,7 +25,6 @@
         "title": "Configure SMN Weather",
         "description": "Update your SMN weather settings.",
         "data": {
-          "track_home": "Track home location",
           "latitude": "Latitude",
           "longitude": "Longitude",
           "name": "Location name"

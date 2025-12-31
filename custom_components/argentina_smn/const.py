@@ -22,8 +22,6 @@ from homeassistant.components.weather import (
 )
 
 DOMAIN: Final = "argentina_smn"
-HOME_LOCATION_NAME: Final = "Home"
-CONF_TRACK_HOME: Final = "track_home"
 
 # API Endpoints
 API_BASE_URL: Final = "https://ws1.smn.gob.ar/v1"
