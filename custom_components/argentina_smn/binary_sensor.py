@@ -385,7 +385,6 @@ class SMNShortTermAlertSensor(CoordinatorEntity[ArgentinaSMNDataUpdateCoordinato
     _attr_device_class = BinarySensorDeviceClass.SAFETY
     _attr_has_entity_name = True
     _attr_name = "Short Term Alert"
-    _attr_entity_category = EntityCategory.DIAGNOSTIC
     _attr_icon = "mdi:alert-circle"
 
     def __init__(
