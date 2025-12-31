@@ -1,0 +1,31 @@
+# Services for the SMN Weather integration
+get_alerts:
+  name: Get weather alerts
+  description: Get current weather alerts and warnings for the configured location from SMN. Returns active alerts with severity levels, descriptions, and instructions for use in automations.
+  fields:
+    config_entry_id:
+      name: Config Entry ID
+      description: >
+        Optional. The Home Assistant config entry ID (not the location ID).
+        Leave empty to use your default SMN integration.
+        Find this ID in Settings > Devices & Services > SMN > three dots > Download diagnostics.
+      required: false
+      example: "01234567890abcdef01234567890abcd"
+      selector:
+        text:
+
+get_alerts_for_location:
+  name: Get alerts for specific location
+  description: >
+    Fetch weather alerts for any SMN location ID.
+    Returns active alerts with severity levels, descriptions, and instructions.
+  fields:
+    location_id:
+      name: Location ID
+      description: >
+        The SMN location ID to fetch alerts for.
+        Example: 4864 for Ciudad Autónoma de Buenos Aires.
+      required: true
+      example: "4864"
+      selector:
+        text:

@@ -1,0 +1,35 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Configurar SMN",
+        "description": "Configurar la integración del Servicio Meteorológico Nacional (SMN).",
+        "data": {
+          "track_home": "Seguir ubicación del hogar",
+          "latitude": "Latitud",
+          "longitude": "Longitud"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "No se pudo conectar al SMN. Por favor, verifica tu conexión a internet e intenta nuevamente.",
+      "unknown": "Ocurrió un error inesperado. Por favor, intenta nuevamente."
+    },
+    "abort": {
+      "already_configured": "Esta ubicación ya está configurada."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Configurar SMN",
+        "description": "Actualiza la configuración del clima SMN.",
+        "data": {
+          "track_home": "Seguir ubicación del hogar",
+          "latitude": "Latitud",
+          "longitude": "Longitud"
+        }
+      }
+    }
+  }
+}
