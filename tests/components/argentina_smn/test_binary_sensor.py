@@ -35,7 +35,7 @@ async def test_alert_sensor_on(
     mock_config_entry: ConfigEntry,
     mock_token_manager,
     mock_current_weather,
-    mock_alerts_data,
+    mock_alerts_data_with_active,
 ) -> None:
     """Test alert sensor is ON when alerts are active."""
     mock_config_entry.add_to_hass(hass)
@@ -51,7 +51,7 @@ async def test_alert_sensor_on(
         mock_data_instance.current_weather_data = mock_current_weather
         mock_data_instance.daily_forecast = []
         mock_data_instance.hourly_forecast = []
-        mock_data_instance.alerts = mock_alerts_data
+        mock_data_instance.alerts = mock_alerts_data_with_active
         mock_data_instance.shortterm_alerts = []
         mock_data_instance.heat_warnings = {}
         mock_data_instance.fetch_data = AsyncMock()
@@ -113,7 +113,7 @@ async def test_event_alert_sensors(
     mock_config_entry: ConfigEntry,
     mock_token_manager,
     mock_current_weather,
-    mock_alerts_data,
+    mock_alerts_data_with_active,
 ) -> None:
     """Test individual event alert sensors."""
     mock_config_entry.add_to_hass(hass)
@@ -129,7 +129,7 @@ async def test_event_alert_sensors(
         mock_data_instance.current_weather_data = mock_current_weather
         mock_data_instance.daily_forecast = []
         mock_data_instance.hourly_forecast = []
-        mock_data_instance.alerts = mock_alerts_data
+        mock_data_instance.alerts = mock_alerts_data_with_active
         mock_data_instance.shortterm_alerts = []
         mock_data_instance.heat_warnings = {}
         mock_data_instance.fetch_data = AsyncMock()
@@ -205,7 +205,7 @@ async def test_alert_sensor_icons(
     mock_config_entry: ConfigEntry,
     mock_token_manager,
     mock_current_weather,
-    mock_alerts_data,
+    mock_alerts_data_with_active,
 ) -> None:
     """Test alert sensors have correct MDI icons."""
     mock_config_entry.add_to_hass(hass)
@@ -221,7 +221,7 @@ async def test_alert_sensor_icons(
         mock_data_instance.current_weather_data = mock_current_weather
         mock_data_instance.daily_forecast = []
         mock_data_instance.hourly_forecast = []
-        mock_data_instance.alerts = mock_alerts_data
+        mock_data_instance.alerts = mock_alerts_data_with_active
         mock_data_instance.shortterm_alerts = []
         mock_data_instance.heat_warnings = {}
         mock_data_instance.fetch_data = AsyncMock()
