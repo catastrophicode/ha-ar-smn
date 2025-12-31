@@ -2,23 +2,79 @@
   "config": {
     "step": {
       "user": {
-        "title": "Set up SMN Weather",
-        "description": "Configure weather location for Argentina's National Weather Service",
+        "title": "Configure SMN Weather",
+        "description": "Set up the Servicio Meteorológico Nacional (SMN) weather integration.",
         "data": {
           "track_home": "Track home location",
           "latitude": "Latitude",
           "longitude": "Longitude",
-          "name": "Name"
+          "name": "Location name"
         }
       }
     },
     "error": {
-      "already_configured": "This location is already configured. Please remove the existing SMN entry from Devices & Services before adding it again.",
-      "invalid_latitude": "Invalid latitude value",
-      "invalid_longitude": "Invalid longitude value"
+      "cannot_connect": "Failed to connect to SMN. Please check your internet connection and try again.",
+      "unknown": "An unexpected error occurred. Please try again."
     },
     "abort": {
-      "no_home": "Home location not configured in Home Assistant"
+      "already_configured": "This location is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Configure SMN Weather",
+        "description": "Update your SMN weather settings.",
+        "data": {
+          "track_home": "Track home location",
+          "latitude": "Latitude",
+          "longitude": "Longitude",
+          "name": "Location name"
+        }
+      }
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "weather_alert": {
+        "name": "Weather alert"
+      },
+      "alert_tormenta": {
+        "name": "Thunderstorm alert"
+      },
+      "alert_lluvia": {
+        "name": "Rain alert"
+      },
+      "alert_nevada": {
+        "name": "Snow alert"
+      },
+      "alert_viento": {
+        "name": "Wind alert"
+      },
+      "alert_viento_zonda": {
+        "name": "Zonda wind alert"
+      },
+      "alert_altas_temperaturas": {
+        "name": "High temperature alert"
+      },
+      "alert_bajas_temperaturas": {
+        "name": "Low temperature alert"
+      },
+      "alert_niebla": {
+        "name": "Fog alert"
+      },
+      "alert_polvo": {
+        "name": "Dust alert"
+      },
+      "alert_humo": {
+        "name": "Smoke alert"
+      },
+      "alert_ceniza_volcanica": {
+        "name": "Volcanic ash alert"
+      },
+      "short_term_alert": {
+        "name": "Short-term alert"
+      }
     }
   }
 }
