@@ -11,7 +11,7 @@ from homeassistant.const import CONF_LATITUDE, CONF_LONGITUDE, Platform
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.helpers import config_validation as cv
 
-from .const import ALERT_EVENT_MAP, ALERT_LEVEL_MAP, CONF_TRACK_HOME, DOMAIN
+from .const import ALERT_EVENT_MAP, ALERT_LEVEL_MAP, DOMAIN
 from .coordinator import ArgentinaSMNDataUpdateCoordinator
 
 _LOGGER = logging.getLogger(__name__)
@@ -108,15 +108,6 @@ def _parse_alerts(alerts_data: dict[str, Any]) -> dict[str, Any]:
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up SMN from a config entry."""
-    # Validate that home location is set if tracking home
-    if entry.data.get(CONF_TRACK_HOME, False):
-        if hass.config.latitude is None or hass.config.longitude is None:
-            _LOGGER.error(
-                "No coordinates configured for home location. "
-                "Please configure home location in Home Assistant settings."
-            )
-            return False
-
     # Create coordinator
     coordinator = ArgentinaSMNDataUpdateCoordinator(hass, entry)
 
@@ -126,10 +117,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Store coordinator
     hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][entry.entry_id] = coordinator
-
-    # Enable home location tracking if configured
-    if entry.data.get(CONF_TRACK_HOME, False):
-        coordinator.track_home_location()
 
     # Register services (only once)
     if not hass.services.has_service(DOMAIN, SERVICE_GET_ALERTS):

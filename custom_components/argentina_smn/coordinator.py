@@ -26,7 +26,6 @@ from .const import (
     API_HEAT_WARNING_ENDPOINT,
     API_SHORTTERM_ALERT_ENDPOINT,
     API_WEATHER_ENDPOINT,
-    CONF_TRACK_HOME,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
     TOKEN_URL,
@@ -487,15 +486,11 @@ class ArgentinaSMNDataUpdateCoordinator(DataUpdateCoordinator[ArgentinaSMNData])
         config_entry: ConfigEntry,
     ) -> None:
         """Initialize the coordinator."""
-        self.track_home = config_entry.data.get(CONF_TRACK_HOME, False)
         self._token_refresh_unsub = None
 
-        if self.track_home:
-            latitude = hass.config.latitude
-            longitude = hass.config.longitude
-        else:
-            latitude = config_entry.data[CONF_LATITUDE]
-            longitude = config_entry.data[CONF_LONGITUDE]
+        # Get coordinates from config entry
+        latitude = config_entry.data[CONF_LATITUDE]
+        longitude = config_entry.data[CONF_LONGITUDE]
 
         # Create token manager
         session = async_get_clientsession(hass)
@@ -563,15 +558,3 @@ class ArgentinaSMNDataUpdateCoordinator(DataUpdateCoordinator[ArgentinaSMNData])
             self.hass, seconds_until_refresh, _refresh_token
         )
 
-    def track_home_location(self) -> None:
-        """Track changes in home location."""
-
-        async def handle_home_location_update(event: Event) -> None:
-            """Handle home location update."""
-            self._smn_data._latitude = self.hass.config.latitude
-            self._smn_data._longitude = self.hass.config.longitude
-            self._smn_data._location_id = None  # Reset to force refetch
-            await self.async_request_refresh()
-
-        # This would need to be implemented with proper event tracking
-        # For now, we'll keep it simple
