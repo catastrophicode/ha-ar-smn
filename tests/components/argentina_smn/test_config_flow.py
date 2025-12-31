@@ -84,17 +84,19 @@ async def test_form_custom_location(
             {
                 CONF_LATITUDE: -31.4201,
                 CONF_LONGITUDE: -64.1888,
+                "name": "Córdoba",
             },
         )
 
         await hass.async_block_till_done()
 
         assert result2["type"] == FlowResultType.CREATE_ENTRY
-        # When no name provided, uses auto-generated format
-        assert result2["title"].startswith("SMN ")
-        assert result2["data"][CONF_LATITUDE] == -31.4201
-        assert result2["data"][CONF_LONGITUDE] == -64.1888
-        assert "name" in result2["data"]
+        assert result2["title"] == "Córdoba"
+        assert result2["data"] == {
+            CONF_LATITUDE: -31.4201,
+            CONF_LONGITUDE: -64.1888,
+            "name": "Córdoba",
+        }
 
 
 @pytest.mark.asyncio
@@ -138,6 +140,7 @@ async def test_form_already_configured(
             {
                 CONF_LATITUDE: -34.6217,
                 CONF_LONGITUDE: -58.4258,
+                "name": "Another Name",
             },
         )
 
@@ -169,6 +172,7 @@ async def test_form_api_error(hass: HomeAssistant, mock_token_manager) -> None:
             {
                 CONF_LATITUDE: -31.4201,
                 CONF_LONGITUDE: -64.1888,
+                "name": "Test Location",
             },
         )
 

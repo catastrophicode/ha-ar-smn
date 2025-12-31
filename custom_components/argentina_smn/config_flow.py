@@ -107,7 +107,7 @@ class ArgentinaSMNConfigFlow(ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             latitude = user_input[CONF_LATITUDE]
             longitude = user_input[CONF_LONGITUDE]
-            name = user_input.get(CONF_NAME, f"SMN {latitude}, {longitude}")
+            name = user_input[CONF_NAME]
 
             # Validate coordinates
             validation_errors = await async_validate_location(
@@ -146,7 +146,7 @@ class ArgentinaSMNConfigFlow(ConfigFlow, domain=DOMAIN):
                 vol.Required(
                     CONF_LONGITUDE, default=self.hass.config.longitude
                 ): cv.longitude,
-                vol.Optional(CONF_NAME): cv.string,
+                vol.Required(CONF_NAME): cv.string,
             }
         )
 
