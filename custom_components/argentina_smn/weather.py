@@ -119,8 +119,20 @@ class ArgentinaSMNWeather(
     @property
     def name(self) -> str:
         """Return the name of the entity."""
-        # Use the configured name from setup
-        # This respects the user's choice from config flow
+        # Priority: 1) User-provided name, 2) API location name, 3) Default
+        config_name = self._config_entry.data.get("name")
+
+        # If user explicitly provided a name or tracking home, use it
+        if config_name and not config_name.startswith("SMN "):
+            return config_name
+
+        # Otherwise, try to get location name from API
+        if self.coordinator.data and self.coordinator.data.current_weather_data:
+            api_name = self.coordinator.data.current_weather_data.get("name")
+            if api_name:
+                return api_name
+
+        # Fall back to configured name (which may be auto-generated)
         return self._default_name
 
     @property
