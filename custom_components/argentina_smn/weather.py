@@ -46,28 +46,28 @@ def format_condition(condition: dict | None, sun_is_up: bool = True) -> str:
     """
     # Handle None or missing condition
     if not condition or not isinstance(condition, dict):
-        _LOGGER.warning("format_condition: No valid condition dict, returning default")
+        _LOGGER.debug("format_condition: No valid condition dict, returning default")
         return ATTR_CONDITION_SUNNY if sun_is_up else ATTR_CONDITION_CLEAR_NIGHT
 
     # Get weather ID (required)
     weather_id = condition.get("id")
     if weather_id is None:
-        _LOGGER.warning("format_condition: Weather dict has no 'id' field: %s", condition)
+        _LOGGER.debug("format_condition: Weather dict has no 'id' field: %s", condition)
         return ATTR_CONDITION_SUNNY if sun_is_up else ATTR_CONDITION_CLEAR_NIGHT
 
     # Map ID to HA condition
     ha_condition = CONDITION_ID_MAP.get(weather_id)
     if not ha_condition:
-        _LOGGER.warning("format_condition: Unknown weather ID: %s", weather_id)
+        _LOGGER.debug("format_condition: Unknown weather ID: %s", weather_id)
         return ATTR_CONDITION_SUNNY if sun_is_up else ATTR_CONDITION_CLEAR_NIGHT
 
     # Special handling: Current weather endpoint uses day IDs even at night
     # Convert sunny (ID 3) to clear-night if sun is down
     if ha_condition == ATTR_CONDITION_SUNNY and not sun_is_up:
-        _LOGGER.info("format_condition: Converted ID %s from sunny to clear-night (sun down)", weather_id)
+        _LOGGER.debug("format_condition: Converted ID %s from sunny to clear-night (sun down)", weather_id)
         return ATTR_CONDITION_CLEAR_NIGHT
 
-    _LOGGER.info("format_condition: Mapped ID %s to %s", weather_id, ha_condition)
+    _LOGGER.debug("format_condition: Mapped ID %s to %s", weather_id, ha_condition)
     return ha_condition
 
 

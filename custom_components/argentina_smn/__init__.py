@@ -21,7 +21,6 @@ PLATFORMS = [Platform.WEATHER, Platform.BINARY_SENSOR]
 # Service names
 SERVICE_GET_ALERTS = "get_alerts"
 SERVICE_GET_ALERTS_FOR_LOCATION = "get_alerts_for_location"
-SERVICE_SEARCH_LOCATION = "search_location"
 
 # Service schemas
 SERVICE_GET_ALERTS_SCHEMA = vol.Schema(
@@ -33,12 +32,6 @@ SERVICE_GET_ALERTS_SCHEMA = vol.Schema(
 SERVICE_GET_ALERTS_FOR_LOCATION_SCHEMA = vol.Schema(
     {
         vol.Required("location_id"): cv.string,
-    }
-)
-
-SERVICE_SEARCH_LOCATION_SCHEMA = vol.Schema(
-    {
-        vol.Required("location_name"): cv.string,
     }
 )
 
@@ -234,102 +227,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             SERVICE_GET_ALERTS_FOR_LOCATION,
             handle_get_alerts_for_location,
             schema=SERVICE_GET_ALERTS_FOR_LOCATION_SCHEMA,
-            supports_response="only",
-        )
-
-    # Register search_location service (only once)
-    if not hass.services.has_service(DOMAIN, SERVICE_SEARCH_LOCATION):
-        async def handle_search_location(call: ServiceCall) -> dict[str, Any]:
-            """Handle search_location service call."""
-            location_name = call.data.get("location_name")
-
-            # Get token manager from first available coordinator
-            if not hass.data.get(DOMAIN):
-                _LOGGER.error("No SMN integration configured. Set up integration first.")
-                return {"locations": [], "error": "No SMN integration configured"}
-
-            # Get first coordinator to access token manager
-            first_entry_id = next(iter(hass.data[DOMAIN]))
-            coordinator = hass.data[DOMAIN][first_entry_id]
-
-            # Search for location using georef API
-            try:
-                import aiohttp
-                import async_timeout
-                from .const import API_BASE_URL
-
-                token = await coordinator._smn_data._token_manager.get_token()
-                headers = {
-                    "Authorization": f"JWT {token}",
-                    "Accept": "application/json",
-                }
-
-                # Use the search endpoint with name and q parameters
-                url = f"{API_BASE_URL}/georef/location/search?name={location_name}&q={location_name}"
-                _LOGGER.info("Searching for location: %s", location_name)
-
-                async with async_timeout.timeout(10):
-                    session = coordinator._smn_data._session
-                    response = await session.get(url, headers=headers)
-                    response.raise_for_status()
-                    data = await response.json()
-
-                _LOGGER.debug("Search location API response type: %s, data: %s", type(data), data)
-
-                # Parse response
-                locations = []
-                if isinstance(data, list):
-                    for loc in data:
-                        # Skip if loc is not a dict
-                        if not isinstance(loc, dict):
-                            _LOGGER.warning("Skipping non-dict location entry: %s", loc)
-                            continue
-
-                        # Extract coord once to avoid calling get() on a list
-                        coord = loc.get("coord")
-                        lat = None
-                        lon = None
-
-                        # Handle coord - it could be a dict, list, or None
-                        if isinstance(coord, dict):
-                            lat = coord.get("lat")
-                            lon = coord.get("lon")
-                        elif isinstance(coord, list) and len(coord) >= 2:
-                            # If coord is a list like [lat, lon]
-                            lat = coord[0]
-                            lon = coord[1]
-
-                        locations.append({
-                            "id": loc.get("id"),
-                            "name": loc.get("name"),
-                            "department": loc.get("department"),
-                            "province": loc.get("province"),
-                            "type": loc.get("type"),
-                            "latitude": lat,
-                            "longitude": lon,
-                        })
-
-                _LOGGER.info(
-                    "Found %d locations matching '%s'",
-                    len(locations),
-                    location_name
-                )
-
-                return {
-                    "locations": locations,
-                    "count": len(locations),
-                    "query": location_name,
-                }
-
-            except Exception as err:
-                _LOGGER.error("Error searching for location '%s': %s", location_name, err)
-                return {"locations": [], "count": 0, "query": location_name, "error": str(err)}
-
-        hass.services.async_register(
-            DOMAIN,
-            SERVICE_SEARCH_LOCATION,
-            handle_search_location,
-            schema=SERVICE_SEARCH_LOCATION_SCHEMA,
             supports_response="only",
         )
 
