@@ -48,32 +48,184 @@ def mock_current_weather() -> dict:
 def mock_forecast_data() -> dict:
     """Return mock forecast data."""
     return {
+        "updated": "2025-12-30T17:32:59-03:00",
+        "location": {
+            "id": 4864,
+            "name": "Ciudad Autónoma de Buenos Aires",
+            "department": "CABA",
+            "province": "CABA",
+            "type": "Ciudad",
+            "coord": {"lon": -58.4258, "lat": -34.6217}
+        },
+        "type": "location",
         "forecast": [
             {
-                "date": "2025-01-01",
-                "temp_max": 28.0,
-                "temp_min": 18.0,
-                "weather": {"id": 3, "description": "Despejado"},
+                "date": "2025-12-30",
+                "temp_min": None,
+                "temp_max": None,
+                "humidity_min": None,
+                "humidity_max": None,
+                "early_morning": None,
+                "morning": None,
+                "afternoon": None,
+                "night": {
+                    "humidity": 30.0,
+                    "rain_prob_range": [0, 0],
+                    "gust_range": None,
+                    "temperature": 31.0,
+                    "visibility": "Buena",
+                    "rain06h": 0.0,
+                    "weather": {"description": "Parcialmente nublado", "id": 25},
+                    "wind": {
+                        "direction": "NO",
+                        "deg": 315.0,
+                        "speed_range": [13, 22]
+                    },
+                    "river": None,
+                    "border": None
+                }
+            },
+            {
+                "date": "2025-12-31",
+                "temp_min": 27.0,
+                "temp_max": 39.0,
+                "humidity_min": 31.0,
+                "humidity_max": 39.0,
+                "early_morning": {
+                    "humidity": 35.0,
+                    "rain_prob_range": [0, 0],
+                    "gust_range": [42, 50],
+                    "temperature": 27.0,
+                    "visibility": "Buena",
+                    "rain06h": 0.0,
+                    "weather": {"description": "Algo nublado", "id": 19},
+                    "wind": {
+                        "direction": "NO",
+                        "deg": 315.0,
+                        "speed_range": [23, 31]
+                    },
+                    "river": None,
+                    "border": None
+                },
                 "morning": {
-                    "temperature": 20.0,
-                    "weather": {"id": 3, "description": "Despejado"},
-                    "wind": {"speed": 10.0, "deg": 180},
+                    "humidity": 39.0,
+                    "rain_prob_range": [0, 0],
+                    "gust_range": None,
+                    "temperature": 31.0,
+                    "visibility": "Buena",
+                    "rain06h": 0.0,
+                    "weather": {"description": "Ligeramente nublado", "id": 13},
+                    "wind": {
+                        "direction": "O",
+                        "deg": 292.5,
+                        "speed_range": [13, 22]
+                    },
+                    "river": None,
+                    "border": None
                 },
                 "afternoon": {
-                    "temperature": 28.0,
-                    "weather": {"id": 3, "description": "Despejado"},
-                    "wind": {"speed": 15.0, "deg": 180},
-                },
-                "evening": {
-                    "temperature": 24.0,
-                    "weather": {"id": 5, "description": "Despejado"},
-                    "wind": {"speed": 12.0, "deg": 180},
+                    "humidity": 31.0,
+                    "rain_prob_range": [10, 40],
+                    "gust_range": None,
+                    "temperature": 39.0,
+                    "visibility": "Regular",
+                    "rain06h": 0.0,
+                    "weather": {"description": "Chaparrones", "id": 74},
+                    "wind": {
+                        "direction": "O",
+                        "deg": 292.5,
+                        "speed_range": [13, 22]
+                    },
+                    "river": None,
+                    "border": None
                 },
                 "night": {
-                    "temperature": 18.0,
-                    "weather": {"id": 5, "description": "Despejado"},
-                    "wind": {"speed": 8.0, "deg": 180},
+                    "humidity": 36.0,
+                    "rain_prob_range": [0, 10],
+                    "gust_range": None,
+                    "temperature": 33.0,
+                    "visibility": "Buena",
+                    "rain06h": 0.0,
+                    "weather": {"description": "Parcialmente nublado", "id": 25},
+                    "wind": {
+                        "direction": "NO",
+                        "deg": 315.0,
+                        "speed_range": [13, 22]
+                    },
+                    "river": None,
+                    "border": None
+                }
+            },
+            {
+                "date": "2026-01-01",
+                "temp_min": 21.0,
+                "temp_max": 30.0,
+                "humidity_min": 43.0,
+                "humidity_max": 66.0,
+                "early_morning": {
+                    "humidity": 59.0,
+                    "rain_prob_range": [0, 0],
+                    "gust_range": None,
+                    "temperature": 21.0,
+                    "visibility": "Buena",
+                    "rain06h": 0.0,
+                    "weather": {"description": "Parcialmente nublado", "id": 25},
+                    "wind": {
+                        "direction": "SE",
+                        "deg": 135.0,
+                        "speed_range": [13, 22]
+                    },
+                    "river": None,
+                    "border": None
                 },
+                "morning": {
+                    "humidity": 56.0,
+                    "rain_prob_range": [0, 0],
+                    "gust_range": [42, 50],
+                    "temperature": 24.0,
+                    "visibility": "Buena",
+                    "rain06h": 0.0,
+                    "weather": {"description": "Mayormente nublado", "id": 37},
+                    "wind": {
+                        "direction": "SE",
+                        "deg": 135.0,
+                        "speed_range": [23, 31]
+                    },
+                    "river": None,
+                    "border": None
+                },
+                "afternoon": {
+                    "humidity": 43.0,
+                    "rain_prob_range": [0, 0],
+                    "gust_range": None,
+                    "temperature": 30.0,
+                    "visibility": "Buena",
+                    "rain06h": 0.1,
+                    "weather": {"description": "Parcialmente nublado", "id": 25},
+                    "wind": {
+                        "direction": "NE",
+                        "deg": 67.5,
+                        "speed_range": [13, 22]
+                    },
+                    "river": None,
+                    "border": None
+                },
+                "night": {
+                    "humidity": 66.0,
+                    "rain_prob_range": [0, 0],
+                    "gust_range": None,
+                    "temperature": 24.0,
+                    "visibility": "Buena",
+                    "rain06h": 0.0,
+                    "weather": {"description": "Parcialmente nublado", "id": 25},
+                    "wind": {
+                        "direction": "E",
+                        "deg": 90.0,
+                        "speed_range": [13, 22]
+                    },
+                    "river": None,
+                    "border": None
+                }
             }
         ]
     }
@@ -81,22 +233,114 @@ def mock_forecast_data() -> dict:
 
 @pytest.fixture
 def mock_alerts_data() -> dict:
-    """Return mock alerts data."""
+    """Return mock alerts data with no active alerts (all level 1)."""
     return {
+        "area_id": 762,
+        "updated": "2025-12-30T17:33:07-03:00",
         "warnings": [
             {
-                "area_id": "11001",
-                "updated": "2025-01-01T10:00:00Z",
+                "date": "2025-12-30",
+                "max_level": 1,
+                "events": [
+                    {
+                        "id": 37,
+                        "max_level": 1,
+                        "levels": {
+                            "early_morning": None,
+                            "morning": None,
+                            "afternoon": None,
+                            "night": 1
+                        }
+                    },
+                    {
+                        "id": 54,
+                        "max_level": 1,
+                        "levels": {
+                            "early_morning": None,
+                            "morning": None,
+                            "afternoon": None,
+                            "night": 1
+                        }
+                    },
+                    {
+                        "id": 39,
+                        "max_level": 1,
+                        "levels": {
+                            "early_morning": None,
+                            "morning": None,
+                            "afternoon": None,
+                            "night": 1
+                        }
+                    },
+                    {
+                        "id": 40,
+                        "max_level": 1,
+                        "levels": {
+                            "early_morning": None,
+                            "morning": None,
+                            "afternoon": None,
+                            "night": 1
+                        }
+                    },
+                    {
+                        "id": 41,
+                        "max_level": 1,
+                        "levels": {
+                            "early_morning": None,
+                            "morning": None,
+                            "afternoon": None,
+                            "night": 1
+                        }
+                    },
+                    {
+                        "id": 42,
+                        "max_level": 1,
+                        "levels": {
+                            "early_morning": None,
+                            "morning": None,
+                            "afternoon": None,
+                            "night": 1
+                        }
+                    }
+                ]
+            }
+        ],
+        "reports": []
+    }
+
+
+@pytest.fixture
+def mock_alerts_data_with_active() -> dict:
+    """Return mock alerts data with active alerts (for testing alert sensors)."""
+    return {
+        "area_id": 762,
+        "updated": "2025-12-30T17:33:07-03:00",
+        "warnings": [
+            {
+                "date": "2025-12-30",
+                "max_level": 3,
                 "events": [
                     {
                         "id": 41,  # tormenta
                         "max_level": 3,
+                        "levels": {
+                            "early_morning": None,
+                            "morning": None,
+                            "afternoon": None,
+                            "night": 3
+                        }
                     },
                     {
                         "id": 37,  # lluvia
                         "max_level": 2,
-                    },
-                ],
+                        "levels": {
+                            "early_morning": None,
+                            "morning": None,
+                            "afternoon": None,
+                            "night": 2
+                        }
+                    }
+                ]
             }
         ],
         "reports": [
@@ -106,9 +350,9 @@ def mock_alerts_data() -> dict:
                     {
                         "level": 3,
                         "description": "Tormentas fuertes",
-                        "instruction": "Manténgase informado",
+                        "instruction": "Manténgase informado"
                     }
-                ],
+                ]
             },
             {
                 "event_id": 37,
@@ -116,11 +360,11 @@ def mock_alerts_data() -> dict:
                     {
                         "level": 2,
                         "description": "Lluvias moderadas",
-                        "instruction": "Esté atento",
+                        "instruction": "Esté atento"
                     }
-                ],
-            },
-        ],
+                ]
+            }
+        ]
     }
 
 
