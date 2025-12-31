@@ -119,11 +119,8 @@ class ArgentinaSMNWeather(
     @property
     def name(self) -> str:
         """Return the name of the entity."""
-        # Use location name from API if available, otherwise use default
-        if self.coordinator.data and self.coordinator.data.current_weather_data:
-            location_name = self.coordinator.data.current_weather_data.get("name")
-            if location_name:
-                return location_name
+        # Use the configured name from setup
+        # This respects the user's choice from config flow
         return self._default_name
 
     @property

@@ -74,12 +74,8 @@ class SMNAlertSensor(CoordinatorEntity[ArgentinaSMNDataUpdateCoordinator], Binar
     @property
     def device_info(self) -> DeviceInfo:
         """Return device information."""
-        # Get location name from coordinator
-        device_name = "SMN Weather"
-        if self.coordinator.data and self.coordinator.data.current_weather_data:
-            location_name = self.coordinator.data.current_weather_data.get("name")
-            if location_name:
-                device_name = location_name
+        # Get device name from config entry
+        device_name = self._config_entry.data.get("name", "SMN Weather")
 
         return DeviceInfo(
             identifiers={(DOMAIN, self._config_entry.entry_id)},
@@ -298,12 +294,8 @@ class SMNEventAlertSensor(CoordinatorEntity[ArgentinaSMNDataUpdateCoordinator], 
     @property
     def device_info(self) -> DeviceInfo:
         """Return device information."""
-        # Get location name from coordinator
-        device_name = "SMN Weather"
-        if self.coordinator.data and self.coordinator.data.current_weather_data:
-            location_name = self.coordinator.data.current_weather_data.get("name")
-            if location_name:
-                device_name = location_name
+        # Get device name from config entry
+        device_name = self._config_entry.data.get("name", "SMN Weather")
 
         return DeviceInfo(
             identifiers={(DOMAIN, self._config_entry.entry_id)},
@@ -400,12 +392,8 @@ class SMNShortTermAlertSensor(CoordinatorEntity[ArgentinaSMNDataUpdateCoordinato
     @property
     def device_info(self) -> DeviceInfo:
         """Return device information."""
-        # Get location name from coordinator
-        device_name = "SMN Weather"
-        if self.coordinator.data and self.coordinator.data.current_weather_data:
-            location_name = self.coordinator.data.current_weather_data.get("name")
-            if location_name:
-                device_name = location_name
+        # Get device name from config entry
+        device_name = self._config_entry.data.get("name", "SMN Weather")
 
         return DeviceInfo(
             identifiers={(DOMAIN, self._config_entry.entry_id)},
