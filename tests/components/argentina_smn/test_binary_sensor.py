@@ -5,7 +5,7 @@ import pytest
 
 from homeassistant.components.binary_sensor import DOMAIN as BINARY_SENSOR_DOMAIN
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_LATITUDE, CONF_LONGITUDE, STATE_ON, STATE_OFF
+from homeassistant.const import CONF_LATITUDE, CONF_LONGITUDE, CONF_NAME, STATE_ON, STATE_OFF
 from homeassistant.core import HomeAssistant
 
 from custom_components.argentina_smn.const import DOMAIN
@@ -22,7 +22,7 @@ def mock_config_entry() -> ConfigEntry:
         data={
             CONF_LATITUDE: -34.6217,
             CONF_LONGITUDE: -58.4258,
-            "name": "Ciudad de Buenos Aires",
+            CONF_NAME: "Ciudad de Buenos Aires",
         },
         source="user",
         unique_id="4864",

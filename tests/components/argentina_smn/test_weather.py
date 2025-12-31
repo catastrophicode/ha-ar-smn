@@ -12,7 +12,7 @@ from homeassistant.components.weather import (
     ATTR_FORECAST_TIME,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_LATITUDE, CONF_LONGITUDE
+from homeassistant.const import CONF_LATITUDE, CONF_LONGITUDE, CONF_NAME
 from homeassistant.core import HomeAssistant
 
 from custom_components.argentina_smn.const import DOMAIN

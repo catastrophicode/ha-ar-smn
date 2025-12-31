@@ -14,6 +14,7 @@ from homeassistant.components.weather import (
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
+    CONF_NAME,
     UnitOfPressure,
     UnitOfSpeed,
     UnitOfTemperature,
@@ -104,7 +105,7 @@ class ArgentinaSMNWeather(
         """Initialize the weather entity."""
         super().__init__(coordinator)
         self._config_entry = config_entry
-        self._attr_name = config_entry.data.get("name", "SMN Weather")
+        self._attr_name = config_entry.data.get(CONF_NAME, "SMN Weather")
         self._attr_unique_id = f"{config_entry.entry_id}"
 
     @property

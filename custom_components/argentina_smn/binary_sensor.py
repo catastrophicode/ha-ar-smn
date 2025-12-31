@@ -10,7 +10,7 @@ from homeassistant.components.binary_sensor import (
     BinarySensorEntity,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import EntityCategory
+from homeassistant.const import CONF_NAME, EntityCategory
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -76,7 +76,7 @@ class SMNAlertSensor(CoordinatorEntity[ArgentinaSMNDataUpdateCoordinator], Binar
         """Return device information."""
         return DeviceInfo(
             identifiers={(DOMAIN, self._config_entry.entry_id)},
-            name=self._config_entry.data.get("name", "SMN Weather"),
+            name=self._config_entry.data.get(CONF_NAME, "SMN Weather"),
             manufacturer="Servicio Meteorológico Nacional",
             entry_type=DeviceEntryType.SERVICE,
         )
@@ -293,7 +293,7 @@ class SMNEventAlertSensor(CoordinatorEntity[ArgentinaSMNDataUpdateCoordinator], 
         """Return device information."""
         return DeviceInfo(
             identifiers={(DOMAIN, self._config_entry.entry_id)},
-            name=self._config_entry.data.get("name", "SMN Weather"),
+            name=self._config_entry.data.get(CONF_NAME, "SMN Weather"),
             manufacturer="Servicio Meteorológico Nacional",
             entry_type=DeviceEntryType.SERVICE,
         )
@@ -388,7 +388,7 @@ class SMNShortTermAlertSensor(CoordinatorEntity[ArgentinaSMNDataUpdateCoordinato
         """Return device information."""
         return DeviceInfo(
             identifiers={(DOMAIN, self._config_entry.entry_id)},
-            name=self._config_entry.data.get("name", "SMN Weather"),
+            name=self._config_entry.data.get(CONF_NAME, "SMN Weather"),
             manufacturer="Servicio Meteorológico Nacional",
             entry_type=DeviceEntryType.SERVICE,
         )
