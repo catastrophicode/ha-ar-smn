@@ -17,11 +17,11 @@ def mock_jwt_token() -> str:
 def mock_location_data() -> dict:
     """Return mock location data from georef API."""
     return {
-        "id": "4841",
-        "name": "José María Ezeiza",
-        "department": "Ezeiza",
-        "province": "Buenos Aires",
-        "coord": {"lat": -34.8604, "lon": -58.522},
+        "id": "4864",
+        "name": "Ciudad de Buenos Aires",
+        "department": "Comuna 1",
+        "province": "Ciudad Autónoma de Buenos Aires",
+        "coord": {"lat": -34.6217, "lon": -58.4258},
     }
 
 
@@ -37,9 +37,9 @@ def mock_current_weather() -> dict:
         "weather": {"id": 3, "description": "Despejado"},
         "wind": {"speed": 15.5, "deg": 180},
         "location": {
-            "id": "4841",
-            "name": "José María Ezeiza",
-            "province": "Buenos Aires",
+            "id": "4864",
+            "name": "Ciudad de Buenos Aires",
+            "province": "Ciudad Autónoma de Buenos Aires",
         },
     }
 
@@ -129,12 +129,41 @@ def mock_shortterm_alerts() -> list:
     """Return mock short-term alerts data."""
     return [
         {
-            "title": "Alerta meteorológica inmediata",
-            "date": "2025-01-01T10:00:00Z",
-            "end_date": "2025-01-01T18:00:00Z",
-            "zones": ["Buenos Aires"],
-            "severity": "high",
-            "instructions": "Tome precauciones inmediatas",
+            "id": 30060,
+            "title": "TORMENTAS FUERTES CON RAFAGAS Y OCASIONAL CAIDA DE GRANIZO. ",
+            "date": "2025-12-30T19:42:00-03:00",
+            "end_date": "2025-12-30T20:42:00-03:00",
+            "zones": [
+                "BUENOS AIRES: Ayacucho - Balcarce - Mar Chiquita."
+            ],
+            "severity": "N",
+            "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                    [
+                        [-58.76, -37.23],
+                        [-58.2, -37.61],
+                        [-57.8, -37.3],
+                        [-58.24, -36.95]
+                    ]
+                ]
+            },
+            "images": [
+                {
+                    "title": "gmp_general",
+                    "url": "http://estaticos.smn.gob.ar/pronosticos/avisomet/datos_aviso/HkuFGi0TlWNom4e/avi_gral.gif"
+                }
+            ],
+            "region": "Sector Centro",
+            "partial": "Y",
+            "provinces": [
+                {
+                    "id": 6,
+                    "name": "Buenos Aires",
+                    "locations": [4268, 4289, 4290, 4293]
+                }
+            ],
+            "instructions": "1- Retirá o asegurá objetos que puedan ser arrastrados por el viento.\n2- Cerrá y alejate de puertas y ventanas.\n3- No te refugies debajo de marquesinas, carteles publicitarios, árboles o postes.\n4- Permanecé en construcciones cerradas como casas, escuelas o edificios públicos.\n5- Mantenete alejado de artefactos eléctricos y evitá el uso de teléfonos con cable.\n6- Si estás al aire libre, buscá refugio inmediato en un edificio, casa o vehículo cerrado.\n7- Para minimizar el riesgo de ser alcanzado por un rayo, no permanezcas en playas, ríos, lagunas o piletas."
         }
     ]
 

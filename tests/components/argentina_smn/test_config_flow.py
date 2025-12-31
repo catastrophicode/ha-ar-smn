@@ -17,8 +17,8 @@ async def test_form_home_location(
 ) -> None:
     """Test we can configure with home location."""
     # Set home location
-    hass.config.latitude = -34.8604
-    hass.config.longitude = -58.522
+    hass.config.latitude = -34.6217
+    hass.config.longitude = -58.4258
 
     result = await hass.config_entries.flow.async_init(
         DOMAIN, context={"source": config_entries.SOURCE_USER}
@@ -48,8 +48,8 @@ async def test_form_home_location(
         assert result2["title"] == "Home"
         assert result2["data"] == {
             CONF_TRACK_HOME: True,
-            CONF_LATITUDE: -34.8604,
-            CONF_LONGITUDE: -58.522,
+            CONF_LATITUDE: -34.6217,
+            CONF_LONGITUDE: -58.4258,
         }
 
 
@@ -87,12 +87,12 @@ async def test_form_custom_location(
         await hass.async_block_till_done()
 
         assert result2["type"] == FlowResultType.CREATE_ENTRY
-        assert result2["title"] == "José María Ezeiza"
+        assert result2["title"] == "Ciudad de Buenos Aires"
         assert result2["data"] == {
             CONF_TRACK_HOME: False,
             CONF_LATITUDE: -31.4201,
             CONF_LONGITUDE: -64.1888,
-            "name": "José María Ezeiza",
+            "name": "Ciudad de Buenos Aires",
         }
 
 
@@ -109,8 +109,8 @@ async def test_form_already_configured(
         title="Home",
         data={
             CONF_TRACK_HOME: True,
-            CONF_LATITUDE: -34.8604,
-            CONF_LONGITUDE: -58.522,
+            CONF_LATITUDE: -34.6217,
+            CONF_LONGITUDE: -58.4258,
         },
         source=config_entries.SOURCE_USER,
         options={},

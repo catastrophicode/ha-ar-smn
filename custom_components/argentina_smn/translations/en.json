@@ -1,0 +1,35 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Configure SMN Weather",
+        "description": "Set up the Servicio Meteorológico Nacional (SMN) weather integration.",
+        "data": {
+          "track_home": "Track home location",
+          "latitude": "Latitude",
+          "longitude": "Longitude"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect to SMN. Please check your internet connection and try again.",
+      "unknown": "An unexpected error occurred. Please try again."
+    },
+    "abort": {
+      "already_configured": "This location is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Configure SMN Weather",
+        "description": "Update your SMN weather settings.",
+        "data": {
+          "track_home": "Track home location",
+          "latitude": "Latitude",
+          "longitude": "Longitude"
+        }
+      }
+    }
+  }
+}

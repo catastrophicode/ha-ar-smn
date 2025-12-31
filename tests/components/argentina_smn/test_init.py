@@ -17,14 +17,14 @@ def mock_config_entry() -> ConfigEntry:
         version=1,
         minor_version=1,
         domain=DOMAIN,
-        title="José María Ezeiza",
+        title="Ciudad de Buenos Aires",
         data={
-            CONF_LATITUDE: -34.8604,
-            CONF_LONGITUDE: -58.522,
-            "name": "José María Ezeiza",
+            CONF_LATITUDE: -34.6217,
+            CONF_LONGITUDE: -58.4258,
+            "name": "Ciudad de Buenos Aires",
         },
         source="user",
-        unique_id="4841",
+        unique_id="4864",
     )
 
 
