@@ -274,10 +274,17 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                     response.raise_for_status()
                     data = await response.json()
 
+                _LOGGER.debug("Search location API response type: %s, data: %s", type(data), data)
+
                 # Parse response
                 locations = []
                 if isinstance(data, list):
                     for loc in data:
+                        # Skip if loc is not a dict
+                        if not isinstance(loc, dict):
+                            _LOGGER.warning("Skipping non-dict location entry: %s", loc)
+                            continue
+
                         # Extract coord once to avoid calling get() on a list
                         coord = loc.get("coord")
                         lat = None
