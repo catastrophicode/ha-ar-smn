@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from homeassistant import config_entries
-from homeassistant.const import CONF_LATITUDE, CONF_LONGITUDE
+from homeassistant.const import CONF_LATITUDE, CONF_LONGITUDE, CONF_NAME
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 
@@ -42,7 +42,7 @@ async def test_form_home_location(
             {
                 CONF_LATITUDE: -34.6217,
                 CONF_LONGITUDE: -58.4258,
-                "name": "My Home",
+                CONF_NAME: "My Home",
             },
         )
 
@@ -53,7 +53,7 @@ async def test_form_home_location(
         assert result2["data"] == {
             CONF_LATITUDE: -34.6217,
             CONF_LONGITUDE: -58.4258,
-            "name": "My Home",
+            CONF_NAME: "My Home",
         }
 
 
@@ -84,17 +84,19 @@ async def test_form_custom_location(
             {
                 CONF_LATITUDE: -31.4201,
                 CONF_LONGITUDE: -64.1888,
+                CONF_NAME: "Córdoba",
             },
         )
 
         await hass.async_block_till_done()
 
         assert result2["type"] == FlowResultType.CREATE_ENTRY
-        # When no name provided, uses auto-generated format
-        assert result2["title"].startswith("SMN ")
-        assert result2["data"][CONF_LATITUDE] == -31.4201
-        assert result2["data"][CONF_LONGITUDE] == -64.1888
-        assert "name" in result2["data"]
+        assert result2["title"] == "Córdoba"
+        assert result2["data"] == {
+            CONF_LATITUDE: -31.4201,
+            CONF_LONGITUDE: -64.1888,
+            CONF_NAME: "Córdoba",
+        }
 
 
 @pytest.mark.asyncio
@@ -111,7 +113,7 @@ async def test_form_already_configured(
         data={
             CONF_LATITUDE: -34.6217,
             CONF_LONGITUDE: -58.4258,
-            "name": "Buenos Aires",
+            CONF_NAME: "Buenos Aires",
         },
         source=config_entries.SOURCE_USER,
         options={},
@@ -138,6 +140,7 @@ async def test_form_already_configured(
             {
                 CONF_LATITUDE: -34.6217,
                 CONF_LONGITUDE: -58.4258,
+                CONF_NAME: "Another Name",
             },
         )
 
@@ -169,6 +172,7 @@ async def test_form_api_error(hass: HomeAssistant, mock_token_manager) -> None:
             {
                 CONF_LATITUDE: -31.4201,
                 CONF_LONGITUDE: -64.1888,
+                CONF_NAME: "Test Location",
             },
         )
 
