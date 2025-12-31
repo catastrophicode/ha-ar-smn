@@ -12,11 +12,9 @@ from homeassistant.core import HomeAssistant, callback
 import homeassistant.helpers.config_validation as cv
 
 from .const import (
-    CONF_TRACK_HOME,
     DEFAULT_HOME_LATITUDE,
     DEFAULT_HOME_LONGITUDE,
     DOMAIN,
-    HOME_LOCATION_NAME,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -73,40 +71,29 @@ class ArgentinaSMNConfigFlow(ConfigFlow, domain=DOMAIN):
         )
 
         for entry in existing_entries:
+            entry_lat = entry.data.get(CONF_LATITUDE)
+            entry_lon = entry.data.get(CONF_LONGITUDE)
+
             _LOGGER.debug(
-                "Checking entry: %s (track_home=%s, lat=%s, lon=%s)",
+                "Checking entry: %s (lat=%s, lon=%s)",
                 entry.title,
-                entry.data.get(CONF_TRACK_HOME),
-                entry.data.get(CONF_LATITUDE),
-                entry.data.get(CONF_LONGITUDE),
+                entry_lat,
+                entry_lon,
             )
 
-            if entry.data.get(CONF_TRACK_HOME):
-                # If tracking home, check against home location with tolerance
+            # Check against configured coordinates with tolerance
+            if entry_lat is not None and entry_lon is not None:
                 if (
-                    abs(self.hass.config.latitude - latitude) < COORD_TOLERANCE
-                    and abs(self.hass.config.longitude - longitude) < COORD_TOLERANCE
+                    abs(entry_lat - latitude) < COORD_TOLERANCE
+                    and abs(entry_lon - longitude) < COORD_TOLERANCE
                 ):
                     _LOGGER.warning(
-                        "Location matches existing home tracking entry: %s", entry.title
+                        "Location matches existing entry: %s (lat=%s, lon=%s)",
+                        entry.title,
+                        entry_lat,
+                        entry_lon,
                     )
                     return (False, entry.title)
-            else:
-                # Check against configured coordinates with tolerance
-                entry_lat = entry.data.get(CONF_LATITUDE)
-                entry_lon = entry.data.get(CONF_LONGITUDE)
-                if entry_lat is not None and entry_lon is not None:
-                    if (
-                        abs(entry_lat - latitude) < COORD_TOLERANCE
-                        and abs(entry_lon - longitude) < COORD_TOLERANCE
-                    ):
-                        _LOGGER.warning(
-                            "Location matches existing entry: %s (lat=%s, lon=%s)",
-                            entry.title,
-                            entry_lat,
-                            entry_lon,
-                        )
-                        return (False, entry.title)
 
         _LOGGER.debug("Location is unique, allowing setup")
         return (True, None)
@@ -118,15 +105,9 @@ class ArgentinaSMNConfigFlow(ConfigFlow, domain=DOMAIN):
         errors: dict[str, str] = {}
 
         if user_input is not None:
-            # Check if tracking home location
-            if user_input.get(CONF_TRACK_HOME, False):
-                latitude = self.hass.config.latitude
-                longitude = self.hass.config.longitude
-                name = HOME_LOCATION_NAME
-            else:
-                latitude = user_input[CONF_LATITUDE]
-                longitude = user_input[CONF_LONGITUDE]
-                name = user_input.get(CONF_NAME, f"SMN {latitude}, {longitude}")
+            latitude = user_input[CONF_LATITUDE]
+            longitude = user_input[CONF_LONGITUDE]
+            name = user_input.get(CONF_NAME, f"SMN {latitude}, {longitude}")
 
             # Validate coordinates
             validation_errors = await async_validate_location(
@@ -153,18 +134,16 @@ class ArgentinaSMNConfigFlow(ConfigFlow, domain=DOMAIN):
                             CONF_NAME: name,
                             CONF_LATITUDE: latitude,
                             CONF_LONGITUDE: longitude,
-                            CONF_TRACK_HOME: user_input.get(CONF_TRACK_HOME, False),
                         },
                     )
 
-        # Show form
+        # Show form - pre-fill with home coordinates
         data_schema = vol.Schema(
             {
-                vol.Optional(CONF_TRACK_HOME, default=False): cv.boolean,
-                vol.Optional(
+                vol.Required(
                     CONF_LATITUDE, default=self.hass.config.latitude
                 ): cv.latitude,
-                vol.Optional(
+                vol.Required(
                     CONF_LONGITUDE, default=self.hass.config.longitude
                 ): cv.longitude,
                 vol.Optional(CONF_NAME): cv.string,

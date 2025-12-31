@@ -28,10 +28,8 @@ from homeassistant.util import dt as dt_util
 from .const import (
     ATTR_MAP,
     CONDITION_ID_MAP,
-    CONF_TRACK_HOME,
     DOMAIN,
     FORECAST_MAP,
-    HOME_LOCATION_NAME,
 )
 from .coordinator import ArgentinaSMNDataUpdateCoordinator
 
@@ -81,13 +79,7 @@ async def async_setup_entry(
         config_entry.entry_id
     ]
 
-    # Determine entity name
-    if config_entry.data.get(CONF_TRACK_HOME, False):
-        name = HOME_LOCATION_NAME
-    else:
-        name = config_entry.data.get("name", "SMN Weather")
-
-    async_add_entities([ArgentinaSMNWeather(coordinator, name, config_entry)], False)
+    async_add_entities([ArgentinaSMNWeather(coordinator, config_entry)], False)
 
 
 class ArgentinaSMNWeather(
@@ -107,43 +99,20 @@ class ArgentinaSMNWeather(
     def __init__(
         self,
         coordinator: ArgentinaSMNDataUpdateCoordinator,
-        name: str,
         config_entry: ConfigEntry,
     ) -> None:
         """Initialize the weather entity."""
         super().__init__(coordinator)
         self._config_entry = config_entry
-        self._default_name = name
+        self._attr_name = config_entry.data.get("name", "SMN Weather")
         self._attr_unique_id = f"{config_entry.entry_id}"
-
-    @property
-    def name(self) -> str:
-        """Return the name of the entity."""
-        # Priority: 1) User-provided name, 2) API location name, 3) Default
-        config_name = self._config_entry.data.get("name")
-
-        # If user explicitly provided a name or tracking home, use it
-        if config_name and not config_name.startswith("SMN "):
-            return config_name
-
-        # Otherwise, try to get location name from API
-        if self.coordinator.data and self.coordinator.data.current_weather_data:
-            api_name = self.coordinator.data.current_weather_data.get("name")
-            if api_name:
-                return api_name
-
-        # Fall back to configured name (which may be auto-generated)
-        return self._default_name
 
     @property
     def device_info(self) -> DeviceInfo:
         """Return device information."""
-        # Use location name for device name
-        device_name = self.name
-
         return DeviceInfo(
             identifiers={(DOMAIN, self._config_entry.entry_id)},
-            name=device_name,
+            name=self._attr_name,
             manufacturer="Servicio Meteorológico Nacional",
             entry_type=DeviceEntryType.SERVICE,
         )

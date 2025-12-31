@@ -74,21 +74,9 @@ class SMNAlertSensor(CoordinatorEntity[ArgentinaSMNDataUpdateCoordinator], Binar
     @property
     def device_info(self) -> DeviceInfo:
         """Return device information."""
-        # Priority: 1) User-provided name, 2) API location name, 3) Default
-        config_name = self._config_entry.data.get("name", "SMN Weather")
-
-        # If user explicitly provided a name or tracking home, use it
-        if config_name and not config_name.startswith("SMN "):
-            device_name = config_name
-        # Otherwise, try to get location name from API
-        elif self.coordinator.data and self.coordinator.data.current_weather_data:
-            device_name = self.coordinator.data.current_weather_data.get("name", config_name)
-        else:
-            device_name = config_name
-
         return DeviceInfo(
             identifiers={(DOMAIN, self._config_entry.entry_id)},
-            name=device_name,
+            name=self._config_entry.data.get("name", "SMN Weather"),
             manufacturer="Servicio Meteorológico Nacional",
             entry_type=DeviceEntryType.SERVICE,
         )
@@ -303,21 +291,9 @@ class SMNEventAlertSensor(CoordinatorEntity[ArgentinaSMNDataUpdateCoordinator], 
     @property
     def device_info(self) -> DeviceInfo:
         """Return device information."""
-        # Priority: 1) User-provided name, 2) API location name, 3) Default
-        config_name = self._config_entry.data.get("name", "SMN Weather")
-
-        # If user explicitly provided a name or tracking home, use it
-        if config_name and not config_name.startswith("SMN "):
-            device_name = config_name
-        # Otherwise, try to get location name from API
-        elif self.coordinator.data and self.coordinator.data.current_weather_data:
-            device_name = self.coordinator.data.current_weather_data.get("name", config_name)
-        else:
-            device_name = config_name
-
         return DeviceInfo(
             identifiers={(DOMAIN, self._config_entry.entry_id)},
-            name=device_name,
+            name=self._config_entry.data.get("name", "SMN Weather"),
             manufacturer="Servicio Meteorológico Nacional",
             entry_type=DeviceEntryType.SERVICE,
         )
@@ -410,21 +386,9 @@ class SMNShortTermAlertSensor(CoordinatorEntity[ArgentinaSMNDataUpdateCoordinato
     @property
     def device_info(self) -> DeviceInfo:
         """Return device information."""
-        # Priority: 1) User-provided name, 2) API location name, 3) Default
-        config_name = self._config_entry.data.get("name", "SMN Weather")
-
-        # If user explicitly provided a name or tracking home, use it
-        if config_name and not config_name.startswith("SMN "):
-            device_name = config_name
-        # Otherwise, try to get location name from API
-        elif self.coordinator.data and self.coordinator.data.current_weather_data:
-            device_name = self.coordinator.data.current_weather_data.get("name", config_name)
-        else:
-            device_name = config_name
-
         return DeviceInfo(
             identifiers={(DOMAIN, self._config_entry.entry_id)},
-            name=device_name,
+            name=self._config_entry.data.get("name", "SMN Weather"),
             manufacturer="Servicio Meteorológico Nacional",
             entry_type=DeviceEntryType.SERVICE,
         )

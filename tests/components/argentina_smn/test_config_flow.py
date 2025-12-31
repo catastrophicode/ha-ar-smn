@@ -8,14 +8,14 @@ from homeassistant.const import CONF_LATITUDE, CONF_LONGITUDE
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 
-from custom_components.argentina_smn.const import CONF_TRACK_HOME, DOMAIN
+from custom_components.argentina_smn.const import DOMAIN
 
 
 @pytest.mark.asyncio
 async def test_form_home_location(
     hass: HomeAssistant, mock_token_manager, mock_location_data
 ) -> None:
-    """Test we can configure with home location."""
+    """Test we can configure with home location coordinates."""
     # Set home location
     hass.config.latitude = -34.6217
     hass.config.longitude = -58.4258
@@ -39,17 +39,21 @@ async def test_form_home_location(
 
         result2 = await hass.config_entries.flow.async_configure(
             result["flow_id"],
-            {CONF_TRACK_HOME: True},
+            {
+                CONF_LATITUDE: -34.6217,
+                CONF_LONGITUDE: -58.4258,
+                "name": "My Home",
+            },
         )
 
         await hass.async_block_till_done()
 
         assert result2["type"] == FlowResultType.CREATE_ENTRY
-        assert result2["title"] == "Home"
+        assert result2["title"] == "My Home"
         assert result2["data"] == {
-            CONF_TRACK_HOME: True,
             CONF_LATITUDE: -34.6217,
             CONF_LONGITUDE: -58.4258,
+            "name": "My Home",
         }
 
 
@@ -78,7 +82,6 @@ async def test_form_custom_location(
         result2 = await hass.config_entries.flow.async_configure(
             result["flow_id"],
             {
-                CONF_TRACK_HOME: False,
                 CONF_LATITUDE: -31.4201,
                 CONF_LONGITUDE: -64.1888,
             },
@@ -87,13 +90,11 @@ async def test_form_custom_location(
         await hass.async_block_till_done()
 
         assert result2["type"] == FlowResultType.CREATE_ENTRY
-        assert result2["title"] == "Ciudad de Buenos Aires"
-        assert result2["data"] == {
-            CONF_TRACK_HOME: False,
-            CONF_LATITUDE: -31.4201,
-            CONF_LONGITUDE: -64.1888,
-            "name": "Ciudad de Buenos Aires",
-        }
+        # When no name provided, uses auto-generated format
+        assert result2["title"].startswith("SMN ")
+        assert result2["data"][CONF_LATITUDE] == -31.4201
+        assert result2["data"][CONF_LONGITUDE] == -64.1888
+        assert "name" in result2["data"]
 
 
 @pytest.mark.asyncio
@@ -106,15 +107,15 @@ async def test_form_already_configured(
         version=1,
         minor_version=1,
         domain=DOMAIN,
-        title="Home",
+        title="Buenos Aires",
         data={
-            CONF_TRACK_HOME: True,
             CONF_LATITUDE: -34.6217,
             CONF_LONGITUDE: -58.4258,
+            "name": "Buenos Aires",
         },
         source=config_entries.SOURCE_USER,
         options={},
-        unique_id="home",
+        unique_id="buenos_aires",
     )
     existing_entry.add_to_hass(hass)
 
@@ -134,7 +135,10 @@ async def test_form_already_configured(
 
         result2 = await hass.config_entries.flow.async_configure(
             result["flow_id"],
-            {CONF_TRACK_HOME: True},
+            {
+                CONF_LATITUDE: -34.6217,
+                CONF_LONGITUDE: -58.4258,
+            },
         )
 
         await hass.async_block_till_done()
@@ -163,7 +167,6 @@ async def test_form_api_error(hass: HomeAssistant, mock_token_manager) -> None:
         result2 = await hass.config_entries.flow.async_configure(
             result["flow_id"],
             {
-                CONF_TRACK_HOME: False,
                 CONF_LATITUDE: -31.4201,
                 CONF_LONGITUDE: -64.1888,
             },
