@@ -16,7 +16,7 @@ from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import ALERT_EVENT_MAP, ALERT_LEVEL_MAP, DOMAIN
+from .const import ALERT_EVENT_ICONS, ALERT_EVENT_MAP, ALERT_LEVEL_MAP, DOMAIN
 from .coordinator import ArgentinaSMNDataUpdateCoordinator
 
 _LOGGER = logging.getLogger(__name__)
@@ -57,7 +57,8 @@ class SMNAlertSensor(CoordinatorEntity[ArgentinaSMNDataUpdateCoordinator], Binar
 
     _attr_device_class = BinarySensorDeviceClass.SAFETY
     _attr_has_entity_name = True
-    _attr_name = "Alert"
+    _attr_name = "Weather Alert"
+    _attr_icon = "mdi:alert"
 
     def __init__(
         self,
@@ -312,6 +313,11 @@ class SMNEventAlertSensor(CoordinatorEntity[ArgentinaSMNDataUpdateCoordinator], 
         )
 
     @property
+    def icon(self) -> str:
+        """Return the icon for this alert type."""
+        return ALERT_EVENT_ICONS.get(self._event_name, "mdi:alert")
+
+    @property
     def is_on(self) -> bool:
         """Return True if this alert type is active."""
         if not self.coordinator.data.alerts:
@@ -380,6 +386,7 @@ class SMNShortTermAlertSensor(CoordinatorEntity[ArgentinaSMNDataUpdateCoordinato
     _attr_has_entity_name = True
     _attr_name = "Short Term Alert"
     _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_icon = "mdi:alert-circle"
 
     def __init__(
         self,

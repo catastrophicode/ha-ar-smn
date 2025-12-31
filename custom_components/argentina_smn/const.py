@@ -143,6 +143,21 @@ ALERT_EVENT_MAP: Final = {
     54: "humo",  # Smoke
 }
 
+# Alert event icon mappings - event name to MDI icon
+ALERT_EVENT_ICONS: Final = {
+    "lluvia": "mdi:weather-rainy",
+    "viento": "mdi:weather-windy",
+    "niebla": "mdi:weather-fog",
+    "tormenta": "mdi:weather-lightning",
+    "nevada": "mdi:weather-snowy",
+    "altas_temperaturas": "mdi:thermometer-high",
+    "bajas_temperaturas": "mdi:thermometer-low",
+    "ceniza_volcanica": "mdi:volcano",
+    "polvo": "mdi:weather-dust",
+    "viento_zonda": "mdi:weather-windy-variant",
+    "humo": "mdi:smoke",
+}
+
 # Alert level mappings - SMN alert level to severity
 ALERT_LEVEL_MAP: Final = {
     1: {"name": "none", "color": "white", "severity": "info"},
