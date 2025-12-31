@@ -57,7 +57,7 @@ class SMNAlertSensor(CoordinatorEntity[ArgentinaSMNDataUpdateCoordinator], Binar
 
     _attr_device_class = BinarySensorDeviceClass.SAFETY
     _attr_has_entity_name = True
-    _attr_name = "Weather Alert"
+    _attr_translation_key = "weather_alert"
     _attr_icon = "mdi:alert"
 
     def __init__(
@@ -293,7 +293,7 @@ class SMNEventAlertSensor(CoordinatorEntity[ArgentinaSMNDataUpdateCoordinator], 
         self._event_id = event_id
         self._event_name = event_name
         self._attr_unique_id = f"{config_entry.entry_id}_alert_{event_name}"
-        self._attr_name = f"Alert {event_name.replace('_', ' ').title()}"
+        self._attr_translation_key = f"alert_{event_name}"
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -384,7 +384,7 @@ class SMNShortTermAlertSensor(CoordinatorEntity[ArgentinaSMNDataUpdateCoordinato
 
     _attr_device_class = BinarySensorDeviceClass.SAFETY
     _attr_has_entity_name = True
-    _attr_name = "Short Term Alert"
+    _attr_translation_key = "short_term_alert"
     _attr_icon = "mdi:alert-circle"
 
     def __init__(

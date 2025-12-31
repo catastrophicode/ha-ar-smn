@@ -7,7 +7,8 @@
         "data": {
           "track_home": "Seguir ubicación del hogar",
           "latitude": "Latitud",
-          "longitude": "Longitud"
+          "longitude": "Longitud",
+          "name": "Nombre de la ubicación"
         }
       }
     },
@@ -27,8 +28,52 @@
         "data": {
           "track_home": "Seguir ubicación del hogar",
           "latitude": "Latitud",
-          "longitude": "Longitud"
+          "longitude": "Longitud",
+          "name": "Nombre de la ubicación"
         }
+      }
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "weather_alert": {
+        "name": "Alerta meteorológica"
+      },
+      "alert_tormenta": {
+        "name": "Alerta por tormenta"
+      },
+      "alert_lluvia": {
+        "name": "Alerta por lluvia"
+      },
+      "alert_nevada": {
+        "name": "Alerta por nevada"
+      },
+      "alert_viento": {
+        "name": "Alerta por viento"
+      },
+      "alert_viento_zonda": {
+        "name": "Alerta por viento zonda"
+      },
+      "alert_altas_temperaturas": {
+        "name": "Alerta por altas temperaturas"
+      },
+      "alert_bajas_temperaturas": {
+        "name": "Alerta por bajas temperaturas"
+      },
+      "alert_niebla": {
+        "name": "Alerta por niebla"
+      },
+      "alert_polvo": {
+        "name": "Alerta por polvo"
+      },
+      "alert_humo": {
+        "name": "Alerta por humo"
+      },
+      "alert_ceniza_volcanica": {
+        "name": "Alerta por ceniza volcánica"
+      },
+      "short_term_alert": {
+        "name": "Alerta a corto plazo"
       }
     }
   }
