@@ -1,11 +1,12 @@
 {
   "domain": "argentina_smn",
-  "name": "SMN",
-  "codeowners": [],
+  "name": "SMN - Servicio Meteorológico Nacional",
+  "codeowners": ["@catastrophicode"],
   "config_flow": true,
   "documentation": "https://github.com/catastrophicode/ha-ar-smn",
   "integration_type": "service",
   "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/catastrophicode/ha-ar-smn/issues",
   "requirements": [],
   "version": "1.0.0"
 }
