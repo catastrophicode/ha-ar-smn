@@ -1,5 +1,6 @@
 {
   "name": "SMN - Servicio Meteorológico Nacional",
+  "country": "AR",
   "content_in_root": false,
   "filename": "argentina_smn",
   "render_readme": true,
